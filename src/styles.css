@@ -206,3 +206,15 @@
 
 
 .scenarioBox{margin-top:12px;padding:10px;border:1px solid #203750;border-radius:8px;background:#081521;max-height:220px;overflow:auto}.scenarioTitle{display:flex;align-items:center;gap:6px;font-size:7px;font-weight:800;letter-spacing:.1em;color:var(--cyan);margin-bottom:8px}.scenarioCard{padding:8px 9px;margin:6px 0;border:1px solid #1b3044;border-radius:7px;background:#0c1b2a}.scenarioCard b{display:block;color:#fff;font-size:9px;margin-bottom:3px}.scenarioCard p{margin:0 0 5px;color:#b8c9db;font-size:8px;line-height:1.5}.scenarioCard small{display:block;color:#7f9ab2;font-size:7px;line-height:1.5}.scenarioCard small strong{color:#8fdcff}
+
+/* Standalone lesson page */
+.standaloneLesson{min-height:100vh;background:var(--bg,#07111d);color:#d5e3f0}
+.standaloneHeader{height:64px;border-bottom:1px solid var(--line,#1b3048);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#081421;position:sticky;top:0;z-index:30}
+.standaloneBrand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}.standaloneBrand span{display:grid;gap:2px}.standaloneBrand b{font-size:13px}.standaloneBrand small{font-size:8px;color:#657b96;letter-spacing:.08em;text-transform:uppercase}
+.standaloneMeta{font-size:8px;font-weight:800;letter-spacing:.12em;color:#6e8ba8}
+.standaloneMain{max-width:1200px;margin:0 auto;padding:20px 24px 60px}
+.standaloneTop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.standaloneBack{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.standaloneStatus{font-size:8px;color:#55d6a7;font-weight:700}
+.standaloneLesson .lessonArticle{max-width:1180px;margin:0 auto}
+@media(max-width:800px){.standaloneHeader{padding:0 14px}.standaloneMeta{display:none}.standaloneMain{padding:14px 10px 40px}}
