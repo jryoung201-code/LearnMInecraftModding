@@ -14,6 +14,69 @@ minecraft:{goal:"Write Java that shows how a mod could react to a Minecraft situ
 challenge:{goal:"Make a small Java program that stores a player name and diamond count, then makes a decision.",requirements:"Store a player name and diamond count, then use an if/else decision and print a message.",hint:"Choose your own names, diamond count, condition, and messages. Build the solution yourself."}
 };
 
+const learningScenarios={
+variables:[
+["Player name","Your mod needs to remember which player opened a menu.","What kind of Java value would store a player name?"],
+["Diamond count","You want to remember how many diamonds a player has.","Would a whole-number type or a text type make more sense?"],
+["Mod enabled","A setting decides whether a feature is turned on.","Which Java type naturally represents on/off?"],
+["Walk speed","A setting stores a value such as 0.25.","Would an integer be able to represent every possible value?"]
+],
+strings:[
+["Welcome message","Your mod wants to display a player's name inside a message.","How could you combine fixed text with a String variable?"],
+["Item label","You need text that says what item a player is holding.","Which part of the program should store the words?"],
+["Score display","A message needs to show a player's score.","What happens when you join text and an int with +?"],
+["Server status","Your UI needs to display the words 'Online' or 'Offline'.","Is this information better represented as text or a number?"]
+],
+conditions:[
+["Enough diamonds","A player can open a feature only when they have at least 10 diamonds.","What comparison would separate enough from not enough?"],
+["Permission check","A command should behave differently when a player has permission.","What boolean-like question could the if statement ask?"],
+["Item check","Your mod should react differently depending on what the player is holding.","What information would the condition need to check?"],
+["Setting check","A feature should only run when a setting is enabled.","Which value could the if statement test?"]
+],
+methods:[
+["Send a message","Several parts of your mod need to send the same kind of message.","What reusable action could become a method?"],
+["Calculate reward","Different events need the same reward calculation.","What information would the method need as a parameter?"],
+["Open menu","More than one command needs to open the same menu.","How could a method keep that action in one place?"],
+["Format player info","You want one reusable action that builds a player information message.","What input should the method receive?"]
+],
+classes:[
+["Custom item","You want to organize data for a custom item.","What information might an object created from the class need?"],
+["Player profile","Your mod needs a small object containing a player's name and score.","What would the class represent?"],
+["Quest","Each quest object needs a title and progress value.","Which fields belong in the blueprint?"],
+["Shop item","A shop entry needs a name and price.","What would one ShopItem object represent?"]
+],
+loops:[
+["Five messages","You need to repeat a small print action five times.","What part of the loop controls how many times it runs?"],
+["List of items","You need to process several items one after another.","Why might a loop be better than writing the same code repeatedly?"],
+["Countdown","You want to count down from a number.","What should change each time the loop repeats?"],
+["Checking positions","A program needs to inspect several nearby positions.","What work belongs inside the repeated section?"]
+],
+minecraft:[
+["Player sneaks","A feature should react when a player is sneaking.","What Minecraft situation would your Java condition represent?"],
+["Block interaction","Your mod should react when a player interacts with a block.","What event or game situation would trigger your logic?"],
+["Item use","A custom item should do something when used.","What information would your code need to know before reacting?"],
+["World setting","A feature should behave differently depending on the world.","What Minecraft object or value might your code inspect?"],
+["Custom command","A command should check a value and then choose what happens.","Which Java concepts from this lesson could combine here?"]
+],
+challenge:[
+["Diamond reward","A player has a name and a diamond count. Print a different message depending on whether they reached a target.","Which variables and decision structure do you need?"],
+["Player rank","Store a player name and a numeric rank level, then choose a message based on the level.","Which value belongs in the condition?"],
+["Item stock","Store an item name and stock count, then print whether the item is available.","What type fits the item name and what type fits stock?"],
+["Quest progress","Store a player name and progress number, then report whether the quest is complete.","What comparison would separate complete from incomplete?"],
+["Level requirement","Store a player name and level, then decide whether they can enter an area.","What should the if statement compare?"]
+],
+welcome:[
+["Minecraft mod idea","Imagine a mod that reacts when a player uses a special item.","Which Java concepts do you think you would need?"],
+["Simple feature","Imagine a setting that turns a feature on or off.","What kind of information would the program need to remember?"],
+["Player information","Imagine a screen showing a player's name and score.","What kinds of values would the program store?"]
+],
+checkpoint:[
+["Debugging situation","Your program reports an error near a variable declaration.","What should you inspect first: the first error message, spelling, punctuation, or all of them?"],
+["Learning situation","You forgot what a boolean means.","Can you describe it as a value with only two possible states?"],
+["Minecraft situation","You want code to react differently in two cases.","Which Java structure from this lesson would be a natural starting point?"]
+]
+};
+
 const sections=[
 {id:"welcome",title:"Welcome to Java",body:<><p>Java is the language we will use to build our Minecraft mods. You do <b>not</b> need to know everything about Java before starting.</p><p>Think of Java as a language for giving the computer instructions. Minecraft and Fabric provide useful tools; your job is to combine them.</p><div className="tip"><Lightbulb/><div><b>Beginner rule</b><p>Do not try to memorize every symbol. Learn what each piece does, then practice changing it.</p></div></div></>},
 {id:"variables",title:"1. Variables: storing information",body:<><p>A variable is a named place where your program can keep a value.</p><Code text={"String playerName = \"Alex\";\nint diamonds = 12;\ndouble speed = 0.25;\nboolean hasPermission = true;"}/><div className="explainGrid"><div><b>String</b><span>Text such as a player name.</span></div><div><b>int</b><span>Whole numbers such as 12.</span></div><div><b>double</b><span>Numbers that can contain decimals.</span></div><div><b>boolean</b><span>Either true or false.</span></div></div><p>For Minecraft mods, variables might store a player's name, a block count, a setting, or whether something is enabled.</p></>},
@@ -252,6 +315,10 @@ return <div className="javaLesson">
 <div className="lessonTeacherContent">
 <div className="lessonNarration">{chatMessages.map((m,i)=>{const aiMessage=m.from==="ai";const aiMessages=chatMessages.filter(x=>x.from==="ai");const aiIndex=aiMessages.indexOf(m);return <div className={aiMessage?"teacherMessage aiTeacherMessage":"teacherMessage userTeacherMessage"} key={i}><div className="chatSpeaker">{aiMessage?"AI:":"You:"}</div><ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>{aiMessage&&chatTyping&&aiIndex===aiMessages.length-1&&<span className="chatTypingCursor">▌</span>}</div>})}</div>
 <div className="teacherPractice">{challenge?challenge.requirements:current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":"Try the idea in the workspace."}</div>
+<div className="scenarioBox">
+<div className="scenarioTitle"><Lightbulb size={13}/><span>REAL-WORLD SCENARIOS</span></div>
+{(learningScenarios[current.id]||learningScenarios.welcome).map(([title,situation,hint],i)=><div className="scenarioCard" key={title+i}><b>{title}</b><p>{situation}</p><small><strong>Think:</strong> {hint}</small></div>)}
+</div>
 <div className="teacherAsk"><input value={chatInput} placeholder="Talk to your teacher..." onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendTeacher()}/><button onClick={sendTeacher} disabled={!!chatTyping}><Send size={13}/></button></div>
 </div>
 </div>
@@ -303,3 +370,4 @@ const answer=msg=>{
 const send=()=>{if(!input.trim())return;const user=input.trim();setMessages(x=>[...x,{from:"user",text:user},{from:"ai",text:answer(user)}]);setInput("")};
 return <div className="aiTutor"><div className="aiHeader"><div><Bot size={19}/><div><b>AI Tutor</b><small>Lesson 1 helper</small></div></div><button onClick={onClose}><X size={17}/></button></div><div className="aiContext">Section: <b>{section}</b></div><div className="aiMessages">{messages.map((m,i)=><div className={m.from==="ai"?"aiMsg":"userMsg"} key={i}>{m.text}</div>)}</div><div className="aiQuick"><button onClick={()=>setInput("What is a variable?")}>Variable</button><button onClick={()=>setInput("I have an error")}>Error help</button><button onClick={()=>setInput("Explain this")}>Explain</button></div><div className="aiInput"><input value={input} placeholder="Ask for coaching..." onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/><button onClick={send}><Send size={15}/></button></div></div>
 }
+.scenarioBox{margin-top:12px;padding:10px;border:1px solid #203750;border-radius:8px;background:#081521;max-height:220px;overflow:auto}.scenarioTitle{display:flex;align-items:center;gap:6px;font-size:7px;font-weight:800;letter-spacing:.1em;color:var(--cyan);margin-bottom:8px}.scenarioCard{padding:8px 9px;margin:6px 0;border:1px solid #1b3044;border-radius:7px;background:#0c1b2a}.scenarioCard b{display:block;color:#fff;font-size:9px;margin-bottom:3px}.scenarioCard p{margin:0 0 5px;color:#b8c9db;font-size:8px;line-height:1.5}.scenarioCard small{display:block;color:#7f9ab2;font-size:7px;line-height:1.5}.scenarioCard small strong{color:#8fdcff}
