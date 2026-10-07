@@ -263,6 +263,23 @@ Return only the teacher's response as plain text.`;
   return safeguardTeacherAnswer(answer,section);
 }
 
+async function ensureDatabase(){
+  if(!pool) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ai_free_usage (
+      client_id TEXT PRIMARY KEY,
+      window_started_at TIMESTAMPTZ NOT NULL,
+      input_words INTEGER NOT NULL DEFAULT 0,
+      output_words INTEGER NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS ai_free_usage_window_started_idx
+      ON ai_free_usage (window_started_at)
+  `);
+}
+
 const server=http.createServer(async(req,res)=>{
   if(req.method==="OPTIONS"){res.writeHead(204,{"Access-Control-Allow-Origin":ALLOWED_ORIGIN,"Access-Control-Allow-Headers":"Content-Type","Access-Control-Allow-Methods":"POST,OPTIONS"});return res.end();}
   if(req.method==="GET" && req.url==="/health") return send(res,200,{ok:true});
@@ -315,4 +332,14 @@ const server=http.createServer(async(req,res)=>{
   });
 });
 
-server.listen(PORT,()=>console.log(`AI Teacher API listening on ${PORT}`));
+async function start(){
+  try{
+    await ensureDatabase();
+    server.listen(PORT,()=>console.log(`AI Teacher API listening on ${PORT} (PostgreSQL ${pool ? "enabled" : "fallback memory mode"})`));
+  }catch(error){
+    console.error("Database initialization failed:",error);
+    process.exit(1);
+  }
+}
+
+start();
