@@ -67,14 +67,14 @@ const checkCode=()=>{
 const code=workspaceCode;
 if(!code.trim()){setOutput(["Write some code first, then run it."]);return}
 const checks={
-variables:/\\bString\\s+\\w+\\s*=/.test(code)&&/System\\.out\\.println\\s*\\(\\s*\\w+\\s*\\)/.test(code),
-strings:/\\bString\\s+\\w+\\s*=/.test(code)&&/\\bint\\s+\\w+\\s*=/.test(code)&&/System\\.out\\.println/.test(code),
-conditions:/\\bif\\s*\\(/.test(code)&&/\\belse\\b/.test(code),
-methods:/(?:void|int|String|boolean|double)\\s+\\w+\\s*\\([^)]*String\\s+\\w+[^)]*\\)/.test(code)&&/\\w+\\s*\\(.*\\)\\s*;/.test(code),
-classes:/\\bclass\\s+\\w+/.test(code)&&/\\bnew\\s+\\w+\\s*\\(/.test(code),
-loops:/\\bfor\\s*\\(/.test(code)||/\\bwhile\\s*\\(/.test(code),
-minecraft:/\\bif\\s*\\(/.test(code)&&/(player|Player|sneak|Minecraft|world|item|block)/.test(code),
-challenge:/\\bString\\s+\\w+\\s*=/.test(code)&&/\\bint\\s+\\w+\\s*=/.test(code)&&/\\bif\\s*\\(/.test(code)&&/System\\.out\\.println/.test(code)
+variables:/\bString\s+\w+\s*=/.test(code)&&/System\.out\.println\s*\\(\s*\w+\s*\\)/.test(code),
+strings:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/System\.out\.println/.test(code),
+conditions:/\bif\s*\\(/.test(code)&&/\belse\\b/.test(code),
+methods:/(?:void|int|String|boolean|double)\s+\w+\s*\\([^)]*String\s+\w+[^)]*\\)/.test(code)&&/\w+\s*\\(.*\\)\s*;/.test(code),
+classes:/\bclass\s+\w+/.test(code)&&/\bnew\s+\w+\s*\\(/.test(code),
+loops:/\bfor\s*\\(/.test(code)||/\bwhile\s*\\(/.test(code),
+minecraft:/\bif\s*\\(/.test(code)&&/(player|Player|sneak|Minecraft|world|item|block)/.test(code),
+challenge:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/\bif\s*\\(/.test(code)&&/System\.out\.println/.test(code)
 };
 const ok=challenge?checks[current.id]!==false:code.includes("System.out");
 setOutput(ok?["✓ Your code matches the goal!","The exact variable names, values, and messages can be different.","Keep coding like this — understand the idea, don't just copy the example."]:["✗ Not quite yet.","Your code does not match the goal for this section yet.","You can use different names and values, but the required Java concept still needs to be present."]);
