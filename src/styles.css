@@ -59,13 +59,13 @@
 .studioNav{display:flex;justify-content:space-between;gap:6px;padding:9px;border-top:1px solid var(--line)}
 .studioNav .primary,.studioNav .secondary{padding:7px 8px;font-size:9px}
 .studioEditor{grid-column:2;display:flex;flex-direction:column;min-width:0;background:#050b13}
-.studioTitle{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);background:#0b1523}
-.studioTitle span{font-size:8px;color:var(--cyan);letter-spacing:.15em;font-weight:800}
-.studioTitle b{font:600 14px "Space Grotesk"}
-.studioTitle small{font-size:9px;color:#6f829c}
-.editorActions{margin-left:auto;display:flex;gap:5px;position:absolute;right:calc(280px + 14px)}
-.studioEditor{position:relative}
-.editorActions button{display:flex;align-items:center;gap:4px;padding:6px 8px;border:1px solid #253a57;background:#101c2c;color:#8fa4bd;border-radius:6px;font-size:8px}
+.studioTitle{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);background:#0b1523;min-height:46px}
+.studioTitleInfo{display:flex;align-items:center;gap:10px;min-width:0}
+.studioTitle span{font-size:8px;color:var(--cyan);letter-spacing:.15em;font-weight:800;flex:none}
+.studioTitle b{font:600 14px "Space Grotesk";flex:none}
+.studioTitle small{font-size:9px;color:#6f829c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.editorActions{margin-left:auto;display:flex;align-items:center;gap:5px;position:static;flex:none}
+.editorActions button{display:flex;align-items:center;gap:4px;padding:6px 8px;border:1px solid #253a57;background:#101c2c;color:#8fa4bd;border-radius:6px;font-size:8px;white-space:nowrap}
 .editorActions .runButton{background:#1b5d72;border-color:#4bcff9;color:#e8fbff}
 .studioCode{flex:1;min-height:0;width:100%;resize:none;border:0;outline:0;padding:20px;background:#050b13;color:#c9e9ff;font:13px/1.85 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:4}
 .studioCode::placeholder{color:#354963}
