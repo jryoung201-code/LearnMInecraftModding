@@ -46,9 +46,17 @@ Return only the teacher's response as plain text.`;
   }
   const complete=[...events].reverse().find(e=>e.type==="COMPLETE");
   const result=complete?.result;
-  if(typeof result==="string") return result;
+  if(typeof result==="string"){
+    try{
+      const parsed=JSON.parse(result);
+      if(parsed && typeof parsed==="object" && typeof parsed.result==="string") return parsed.result;
+      if(typeof parsed==="string") return parsed;
+    }catch{}
+    return result;
+  }
   if(result && typeof result==="object"){
-    return result.response || result.answer || result.message || result.text || JSON.stringify(result);
+    if(typeof result.result==="string") return result.result;
+    return result.response || result.answer || result.message || result.text || "I could not get a readable teacher response right now.";
   }
   const streamed=[...events].reverse().find(e=>e.type==="PROGRESS" && (e.message||e.text));
   return streamed?.message || streamed?.text || "I couldn't get a teacher response right now. Please try again.";
