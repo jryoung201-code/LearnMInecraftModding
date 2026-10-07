@@ -164,53 +164,40 @@ const handleEditorKeyDown=e=>{
  if(e.key==="Tab"||e.key==="Enter"){e.preventDefault();insertAutocomplete(autocomplete.items[autocomplete.index])}
 };
 
-const checkCode=()=>{
-const code=workspaceCode;
-if(!code.trim()){setOutput(["Write some code first, then run it."]);return}
-
-const declaredNames=new Set();
-for(const match of code.matchAll(/\b(?:String|int|double|boolean|float|long)\s+(\w+)\s*=\s*/g))declaredNames.add(match[1]);
-
-const printlnExpressions=[...code.matchAll(/System\.out\.println\s*\(([^)]*)\)/g)].map(m=>m[1]);
-const printlnRefs=printlnExpressions.flatMap(expression=>{
- const withoutStrings=expression.replace(/"([^"\\]|\\.)*"/g,"");
- return [...withoutStrings.matchAll(/\b[A-Za-z_]\w*\b/g)]
-   .map(m=>m[0])
-   .filter(name=>!["true","false","null"].includes(name));
-});
-const missingRefs=[...new Set(printlnRefs.filter(name=>!declaredNames.has(name)))];
-
-const missingSemicolonLines=code.split("\n").filter(line=>{
- const trimmed=line.trim();
- if(!trimmed||trimmed.startsWith("//")||trimmed.endsWith("{")||trimmed.endsWith("}"))return false;
- if(/^(if|else|for|while|class)\b/.test(trimmed))return false;
- return /^(?:String|int|double|boolean|float|long)\b/.test(trimmed)||/System\.out\.println/.test(trimmed)||/^return\b/.test(trimmed);
-}).filter(line=>!line.endsWith(";"));
-
-const syntaxProblems=[];
-if(missingSemicolonLines.length)syntaxProblems.push("Add a semicolon (;) to the end of: "+missingSemicolonLines[0].trim());
-if(missingRefs.length)syntaxProblems.push("The variable "+missingRefs[0]+" is used in println, but it has not been declared. Check the variable name.");
-
-const checks={
-variables:declaredNames.size>0&&/\bString\s+\w+\s*=/.test(code)&&printlnRefs.length>0&&missingRefs.length===0,
-strings:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/System\.out\.println/.test(code)&&missingRefs.length===0,
-conditions:/\bif\s*\(/.test(code)&&/\belse\b/.test(code),
-methods:/(?:void|int|String|boolean|double)\s+\w+\s*\([^)]*String\s+\w+[^)]*\)/.test(code)&&/\w+\s*\(.*\)\s*;/.test(code),
-classes:/\bclass\s+\w+/.test(code)&&/\bnew\s+\w+\s*\(/.test(code),
-loops:/\bfor\s*\(/.test(code)||/\bwhile\s*\(/.test(code),
-minecraft:/\bif\s*\(/.test(code)&&/(player|Player|sneak|Minecraft|world|item|block)/.test(code),
-challenge:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/\bif\s*\(/.test(code)&&/System\.out\.println/.test(code)&&missingRefs.length===0
-};
-
-const conceptOk=challenge?checks[current.id]!==false:code.includes("System.out");
-const ok=conceptOk&&syntaxProblems.length===0;
-
-if(ok){
- setOutput(["✓ Your code matches the goal!","The exact variable names, values, and messages can be different.","Keep coding like this — understand the idea, don't just copy the example."]);
-}else{
- const details=syntaxProblems.length?syntaxProblems:["Your code does not match the goal for this section yet."];
- setOutput(["✗ Not quite yet.",...details,"Fix the issue above and run it again."]);
-}
+const checkCode=async()=>{
+ const code=workspaceCode;
+ if(!code.trim()){setOutput(["Write some Java code first, then run it."]);return}
+ setOutput(["⏳ Sending code to the official Java compiler..."]);
+ try{
+   const response=await fetch("https://learn-minecraft-modding-ai.onrender.com/api/java/check",{
+     method:"POST",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({code,section:current.id})
+   });
+   const data=await response.json();
+   if(!response.ok){
+     setOutput([data.error||"The Java compiler could not be reached."]);
+     return;
+   }
+   if(data.ok){
+     setOutput([
+       "✓ Java compiler: no compilation errors.",
+       "Your code is valid Java for this check."
+     ]);
+   }else{
+     const lines=String(data.compilerError||"Compilation failed.").split("\\n").filter(Boolean);
+     setOutput([
+       "✗ Java compiler found an error.",
+       ...lines,
+       "Fix the compiler error above and run it again."
+     ]);
+   }
+ }catch{
+   setOutput([
+     "✗ Could not reach the Java compiler.",
+     "Make sure the AI backend is online, then try again."
+   ]);
+ }
 };
 const sendTeacher=async()=>{
 if(!chatInput.trim()||chatTyping)return;
