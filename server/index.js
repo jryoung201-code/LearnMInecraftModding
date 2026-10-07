@@ -1,4 +1,11 @@
 import http from "node:http";
+import { execFile } from "node:child_process";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 import pg from "pg";
 
 const { Pool } = pg;
@@ -190,6 +197,81 @@ async function getUsage(clientId){
   return getPersistentUsage(clientId);
 }
 
+function javaSourceFor(code,section){
+  const source=String(code || "").trim();
+  if(!source) return {source:"",mode:"empty"};
+
+  // A complete Java source file is compiled exactly as supplied.
+  if(/(?:^|\\n)\\s*(?:public\\s+)?(?:final\\s+)?class\\s+\\w+/.test(source) && /\\bclass\\s+\\w+/.test(source)){
+    return {source,mode:"full"};
+  }
+
+  // Lesson snippets are wrapped in a real Java main method so javac can
+  // catch undeclared variables, bad types, syntax errors, etc.
+  if(section==="methods"){
+    return {
+      source:`public class Main {
+${source}
+}`,
+      mode:"class-body"
+    };
+  }
+
+  if(section==="classes"){
+    return {
+      source:`public class Main {
+${source}
+}`,
+      mode:"class-body"
+    };
+  }
+
+  return {
+    source:`public class Main {
+  public static void main(String[] args) {
+${source.split("\\n").map(line=>"    "+line).join("\\n")}
+  }
+}`,
+    mode:"snippet"
+  };
+}
+
+function cleanJavacOutput(value){
+  return String(value || "")
+    .replace(/\\r/g,"")
+    .replace(/\\b(?:[A-Za-z]:)?[^\\n]*\\\\Main\\.java(?=:)/g,"Main.java")
+    .trim();
+}
+
+async function compileJava(code,section){
+  const {source,mode}=javaSourceFor(code,section);
+  if(!source) return {ok:false,error:"Write some Java code first, then run it."};
+
+  const dir=await mkdtemp(join(tmpdir(),"lmm-java-"));
+  const file=join(dir,"Main.java");
+
+  try{
+    await writeFile(file,source,"utf8");
+    try{
+      await execFileAsync("javac",["--release","21","-Xlint:all",file],{
+        cwd:dir,
+        timeout:5000,
+        maxBuffer:128*1024
+      });
+      return {ok:true,mode,message:"✓ Java compiler: no compilation errors."};
+    }catch(error){
+      const compilerOutput=cleanJavacOutput(error.stderr || error.stdout || error.message);
+      return {
+        ok:false,
+        mode,
+        error:compilerOutput || "javac could not compile the code."
+      };
+    }
+  }finally{
+    await rm(dir,{recursive:true,force:true});
+  }
+}
+
 function limitWords(value,maxWords){
   const words=String(value || "").trim().split(/\s+/).filter(Boolean);
   if(words.length<=maxWords) return String(value || "").trim();
@@ -280,9 +362,39 @@ async function ensureDatabase(){
   `);
 }
 
+async function handleJavaCheck(req,res){
+  let body="";
+  req.on("data",chunk=>{
+    body+=chunk;
+    if(body.length>30000) req.destroy();
+  });
+  req.on("end",async()=>{
+    try{
+      const input=JSON.parse(body||"{}");
+      const code=String(input.code || "");
+      const section=String(input.section || "variables");
+      if(code.length>20000) return send(res,413,{error:"Code is too large."});
+
+      const result=await compileJava(code,section);
+      if(result.ok) return send(res,200,{ok:true,message:result.message,mode:result.mode});
+
+      send(res,200,{
+        ok:false,
+        message:"✗ Java compiler found an error.",
+        compilerError:result.error,
+        mode:result.mode
+      });
+    }catch(error){
+      console.error("Java compiler error:",error);
+      send(res,500,{error:"The Java compiler is temporarily unavailable."});
+    }
+  });
+}
+
 const server=http.createServer(async(req,res)=>{
   if(req.method==="OPTIONS"){res.writeHead(204,{"Access-Control-Allow-Origin":ALLOWED_ORIGIN,"Access-Control-Allow-Headers":"Content-Type","Access-Control-Allow-Methods":"POST,OPTIONS"});return res.end();}
   if(req.method==="GET" && req.url==="/health") return send(res,200,{ok:true});
+  if(req.method==="POST" && req.url==="/api/java/check") return handleJavaCheck(req,res);
   if(req.method!=="POST" || req.url!=="/api/teacher") return send(res,404,{error:"Not found"});
 
   let body="";
