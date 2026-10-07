@@ -46,16 +46,19 @@ Return only the teacher's response as plain text.`;
   }
   const complete=[...events].reverse().find(e=>e.type==="COMPLETE");
   const result=complete?.result;
-  if(typeof result==="string"){
+  const unwrapResultString = value => {
+    if(typeof value !== "string") return value;
+    let text=value.trim();
     try{
-      const parsed=JSON.parse(result);
-      if(parsed && typeof parsed==="object" && typeof parsed.result==="string") return parsed.result;
-      if(typeof parsed==="string") return parsed;
+      const parsed=JSON.parse(text);
+      if(typeof parsed === "string") return parsed;
+      if(parsed && typeof parsed.result === "string") return parsed.result;
     }catch{}
-    return result;
-  }
+    return text;
+  };
+  if(typeof result==="string") return unwrapResultString(result);
   if(result && typeof result==="object"){
-    if(typeof result.result==="string") return result.result;
+    if(typeof result.result==="string") return unwrapResultString(result.result);
     return result.response || result.answer || result.message || result.text || "I could not get a readable teacher response right now.";
   }
   const streamed=[...events].reverse().find(e=>e.type==="PROGRESS" && (e.message||e.text));
