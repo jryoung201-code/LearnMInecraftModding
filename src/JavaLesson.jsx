@@ -111,18 +111,18 @@ challenge:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/\bif\s
 const ok=challenge?checks[current.id]!==false:code.includes("System.out");
 setOutput(ok?["✓ Your code matches the goal!","The exact variable names, values, and messages can be different.","Keep coding like this — understand the idea, don't just copy the example."]:["✗ Not quite yet.","Your code does not match the goal for this section yet.","You can use different names and values, but the required Java concept still needs to be present."]);
 };
-const sendTeacher=()=>{
+const sendTeacher=async()=>{
 if(!chatInput.trim())return;
 const user=chatInput.trim();
-const lower=user.toLowerCase();
-let reply;
-if(lower.includes("different")||lower.includes("username")||lower.includes("name"))reply="Yes! You can use a different variable name. For example, Username works just like playerName as long as it is a valid Java variable name and you use the same name when you print it.";
-else if(lower.includes("error")||lower.includes("wrong"))reply="That's okay. Read the first error, check the line it points to, and look for spelling, brackets, semicolons, and mismatched variable names. You can paste the code here and I'll help explain it.";
-else if(lower.includes("example")||lower.includes("want"))reply=challenge?challenge.hint:"The example is showing the concept. Your solution does not need to be identical — it needs to use the Java idea correctly.";
-else if(lower.includes("why")||lower.includes("how"))reply="Think about what each line is doing, not just what it looks like. Tell me which line you're wondering about and I'll explain it step by step.";
-else reply=challenge?challenge.hint:"Ask me about the Java concept you're learning, what a line means, or why your code works.";
-setChatMessages(x=>[...x,{from:"user",text:user},{from:"ai",text:reply}]);
+setChatMessages(x=>[...x,{from:"user",text:user},{from:"ai",text:"Thinking..."}]);
 setChatInput("");
+try{
+ const response=await fetch("https://learn-minecraft-modding-ai.onrender.com/api/teacher",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:user,section:current.title,code:workspaceCode})});
+ const data=await response.json();
+ setChatMessages(x=>{const next=[...x];const i=next.length-1;next[i]={from:"ai",text:data.answer||data.error||"I couldn't answer that right now."};return next});
+}catch{
+ setChatMessages(x=>{const next=[...x];const i=next.length-1;next[i]={from:"ai",text:"I couldn't reach the AI Teacher right now. You can keep working on the lesson and try again in a moment."};return next});
+}
 };
 
 useEffect(()=>setSection("welcome"),[]);
