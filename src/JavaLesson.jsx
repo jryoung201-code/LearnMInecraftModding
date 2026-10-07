@@ -136,12 +136,10 @@ return <div className="javaLesson">
 <div className="teacherPanel">
 <div className="teacherHeader"><div className="teacherAvatar"><Bot size={18}/></div><div><b>AI Teacher</b><small>Lesson 1 · Java Foundations</small></div><Sparkles size={15}/></div>
 <div className="teacherTyping"><span className="teacherLabel">TEACHING</span><h2>{current.title}</h2><div className="typingText"><span>{teacherText.slice(0,teacherChars)}</span><span className="typingCursor">▌</span></div>
-<div className="teacherTask"><b>What to do</b><span>{challenge?challenge.goal:current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":"Read the explanation, then change the example in the workspace and see what happens."}</span></div>
-{challenge&&<div className="teacherExample"><div><b>WHAT I WANT YOU TO MAKE</b><small>No solution is shown here. Build it yourself.</small></div><pre>{challenge.requirements}</pre></div>}
-<div className="teacherChat">
-<div className="chatTitle"><span>CHAT WITH YOUR TEACHER</span></div>
-<div className="chatMessages">{chatMessages.map((m,i)=><div className={m.from==="ai"?"chatAI":"chatUser"} key={i}><b>{m.from==="ai"?"AI Teacher":"You"}</b><span>{m.text}</span></div>)}</div>
-<div className="chatInput"><input value={chatInput} placeholder="Ask your teacher..." onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendTeacher()}/><button onClick={sendTeacher}><Send size={13}/></button></div>
+<div className="lessonTeacherContent">
+<div className="lessonNarration">{chatMessages.filter(m=>m.from==="ai").map((m,i)=><p key={i}>{m.text}</p>)}</div>
+<div className="teacherPractice">{challenge?challenge.requirements:current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":"Try the idea in the workspace."}</div>
+<div className="teacherAsk"><input value={chatInput} placeholder="Talk to your teacher..." onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendTeacher()}/><button onClick={sendTeacher}><Send size={13}/></button></div>
 </div>
 </div>
 <div className="teacherProgress"><span>Part {index+1} of {sections.length}</span><div><i style={{width:((index+1)/sections.length*100)+"%"}}/></div></div>
