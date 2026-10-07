@@ -35,7 +35,8 @@ const quiz=[
 const[reset,setReset]=useState(false);
 const[quizAnswers,setQuizAnswers]=useState({});
 const[workspaceCode,setWorkspaceCode]=useState("");
-const[quizSubmitted,setQuizSubmitted]=useState(false);\nconst[output,setOutput]=useState([]);
+const[quizSubmitted,setQuizSubmitted]=useState(false);
+const[output,setOutput]=useState([]);
 
 useEffect(()=>setSection("welcome"),[]);
 return <div className="javaLesson">
