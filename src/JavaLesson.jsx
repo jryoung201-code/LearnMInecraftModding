@@ -59,14 +59,18 @@ const quiz=[
 {q:"What does new Pet(\"Buddy\") create?",a:"An object",o:["A class","An object","A boolean","A method"]},
 {q:"What should you do when an error appears?",a:"Read the first error and check its line",o:["Delete the whole project","Ignore it","Read the first error and check its line","Restart Minecraft only"]}
 ];
+const storageKey="lmm-java-lesson-v2";
+const defaultChat=[{from:"ai",text:"I'm here! You can ask me about the example, your code, or anything in this lesson."}];
 const[reset,setReset]=useState(false);
 const[quizAnswers,setQuizAnswers]=useState({});
 const[workspaceCode,setWorkspaceCode]=useState("");
 const[quizSubmitted,setQuizSubmitted]=useState(false);
 const[output,setOutput]=useState([]);
 const[chatInput,setChatInput]=useState("");
-const[chatMessages,setChatMessages]=useState([{from:"ai",text:"I'm here! You can ask me about the example, your code, or anything in this lesson."}]);
+const[chatMessages,setChatMessages]=useState(defaultChat);
+const[chatTyping,setChatTyping]=useState(null);
 const[autocomplete,setAutocomplete]=useState({open:false,items:[],index:0,start:0,end:0});
+const[restored,setRestored]=useState(false);
 const challenge=challengeInfo[current.id];
 const autocompleteWords=[
 "abstract","boolean","break","class","continue","double","else","extends","final","float","for","if","implements","import","int","interface","new","null","package","private","protected","public","return","static","String","super","this","true","void","while",
@@ -113,21 +117,97 @@ challenge:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/\bif\s
 const ok=challenge?checks[current.id]!==false:code.includes("System.out");
 setOutput(ok?["✓ Your code matches the goal!","The exact variable names, values, and messages can be different.","Keep coding like this — understand the idea, don't just copy the example."]:["✗ Not quite yet.","Your code does not match the goal for this section yet.","You can use different names and values, but the required Java concept still needs to be present."]);
 };
+const typeTeacherReply=(message)=>{
+ const index=chatMessages.length+1;
+ setChatTyping({index,text:message,pos:0});
+ setChatMessages(x=>[...x,{from:"ai",text:""}]);
+};
 const sendTeacher=async()=>{
-if(!chatInput.trim())return;
+if(!chatInput.trim()||chatTyping)return;
 const user=chatInput.trim();
-setChatMessages(x=>[...x,{from:"user",text:user},{from:"ai",text:"Thinking..."}]);
+setChatMessages(x=>[...x,{from:"user",text:user}]);
 setChatInput("");
+setChatTyping({index:chatMessages.length+1,text:"Thinking...",pos:0});
 try{
  const response=await fetch("https://learn-minecraft-modding-ai.onrender.com/api/teacher",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:user,section:current.title,code:workspaceCode})});
  const data=await response.json();
- setChatMessages(x=>{const next=[...x];const i=next.length-1;next[i]={from:"ai",text:data.answer||data.error||"I couldn't answer that right now."};return next});
+ let answer=data.answer||data.error||"I couldn't answer that right now.";
+ if(typeof answer!=="string")answer=String(answer);
+ try{
+   const parsed=JSON.parse(answer);
+   if(typeof parsed==="string")answer=parsed;
+   else if(parsed&&typeof parsed.result==="string")answer=parsed.result;
+ }catch{}
+ setChatMessages(x=>[...x,{from:"ai",text:""}]);
+ setChatTyping({index:chatMessages.length+2,text:answer,pos:0});
 }catch{
- setChatMessages(x=>{const next=[...x];const i=next.length-1;next[i]={from:"ai",text:"I couldn't reach the AI Teacher right now. You can keep working on the lesson and try again in a moment."};return next});
+ const answer="I couldn't reach the AI Teacher right now. You can keep working on the lesson and try again in a moment.";
+ setChatMessages(x=>[...x,{from:"ai",text:""}]);
+ setChatTyping({index:chatMessages.length+2,text:answer,pos:0});
 }
 };
 
-useEffect(()=>setSection("welcome"),[]);
+useEffect(()=>{
+ try{
+   const saved=JSON.parse(localStorage.getItem(storageKey)||"null");
+   if(saved){
+     if(saved.section)setSection(saved.section);
+     if(typeof saved.workspaceCode==="string")setWorkspaceCode(saved.workspaceCode);
+     if(saved.quizAnswers&&typeof saved.quizAnswers==="object")setQuizAnswers(saved.quizAnswers);
+     if(typeof saved.quizSubmitted==="boolean")setQuizSubmitted(saved.quizSubmitted);
+     if(Array.isArray(saved.output))setOutput(saved.output);
+     if(Array.isArray(saved.chatMessages)&&saved.chatMessages.length)setChatMessages(saved.chatMessages);
+   }
+ }catch{}
+ setRestored(true);
+},[]);
+
+useEffect(()=>{
+ if(!chatTyping)return;
+ if(chatTyping.pos>=chatTyping.text.length){
+   setChatMessages(x=>{
+     const next=[...x];
+     const aiIndexes=next.map((m,i)=>m.from==="ai"?i:-1).filter(i=>i>=0);
+     const i=aiIndexes[aiIndexes.length-1];
+     if(i>=0)next[i]={from:"ai",text:chatTyping.text};
+     return next;
+   });
+   setChatTyping(null);
+   return;
+ }
+ const timer=setTimeout(()=>{
+   const nextPos=Math.min(chatTyping.pos+2,chatTyping.text.length);
+   setChatMessages(x=>{
+     const next=[...x];
+     const aiIndexes=next.map((m,i)=>m.from==="ai"?i:-1).filter(i=>i>=0);
+     const i=aiIndexes[aiIndexes.length-1];
+     if(i>=0)next[i]={from:"ai",text:chatTyping.text.slice(0,nextPos)};
+     return next;
+   });
+   setChatTyping({...chatTyping,pos:nextPos});
+ },18);
+ return()=>clearTimeout(timer);
+},[chatTyping]);
+
+useEffect(()=>{
+ if(!restored)return;
+ const timer=setTimeout(()=>{
+   try{
+     localStorage.setItem(storageKey,JSON.stringify({
+       version:2,
+       section,
+       workspaceCode,
+       quizAnswers,
+       quizSubmitted,
+       output,
+       chatMessages
+     }));
+   }catch{}
+ },300);
+ return()=>clearTimeout(timer);
+},[restored,section,workspaceCode,quizAnswers,quizSubmitted,output,chatMessages]);
+
+useEffect(()=>{if(reset){localStorage.removeItem(storageKey);window.location.reload()}},[reset]);
 return <div className="javaLesson">
 <div className="lessonTop"><div><div className="meta"><span>BEGINNER</span><span>LESSON 1</span><span>45–60 MIN</span></div><h1>Java Foundations</h1><p className="lead">Your first step into Minecraft modding. We will learn Java one small idea at a time, then connect it to Minecraft.</p></div><button className="resetBtn" onClick={()=>setReset(!reset)}><RotateCcw size={14}/> Reset</button></div>
 <div className="lessonProgress"><div><i style={{width:((index+1)/sections.length*100)+"%"}}/></div><span>Part {index+1} of {sections.length}</span></div>
@@ -139,9 +219,9 @@ return <div className="javaLesson">
 <div className="teacherHeader"><div className="teacherAvatar"><Bot size={18}/></div><div><b>AI Teacher</b><small>Lesson 1 · Java Foundations</small></div><Sparkles size={15}/></div>
 <div className="teacherTyping"><span className="teacherLabel">TEACHING</span><h2>{current.title}</h2><div className="typingText"><span>{teacherText.slice(0,teacherChars)}</span><span className="typingCursor">▌</span></div>
 <div className="lessonTeacherContent">
-<div className="lessonNarration">{chatMessages.filter(m=>m.from==="ai").map((m,i)=><div className="teacherMessage" key={i}><ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown></div>)}</div>
+<div className="lessonNarration">{chatMessages.filter(m=>m.from==="ai").map((m,i)=><div className="teacherMessage" key={i}><ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>{chatTyping&&i===chatMessages.filter(x=>x.from==="ai").length-1&&<span className="chatTypingCursor">▌</span>}</div>)}</div>
 <div className="teacherPractice">{challenge?challenge.requirements:current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":"Try the idea in the workspace."}</div>
-<div className="teacherAsk"><input value={chatInput} placeholder="Talk to your teacher..." onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendTeacher()}/><button onClick={sendTeacher}><Send size={13}/></button></div>
+<div className="teacherAsk"><input value={chatInput} placeholder="Talk to your teacher..." onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendTeacher()}/><button onClick={sendTeacher} disabled={!!chatTyping}><Send size={13}/></button></div>
 </div>
 </div>
 <div className="teacherProgress"><span>Part {index+1} of {sections.length}</span><div><i style={{width:((index+1)/sections.length*100)+"%"}}/></div></div>
@@ -150,7 +230,7 @@ return <div className="javaLesson">
 </div>
 
 <div className="studioEditor">
-<div className="studioTitle"><span>CODE</span><b>Workspace</b><small>Write your solution here.</small></div>
+<div className="studioTitle"><span>CODE</span><b>Workspace</b><small>Write your solution here. <em className="saveIndicator">● Auto-saved</em></small></div>
 <div className="editorActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button><button className="runButton" onClick={checkCode}><ChevronRight size={13}/> Run</button></div>
 <div className="editorWrap"><textarea className="studioCode" value={workspaceCode} onChange={e=>{setWorkspaceCode(e.target.value);const a=getAutocomplete(e.target.value,e.target.selectionStart);setAutocomplete(a||{open:false,items:[],index:0,start:0,end:0})}} onKeyDown={handleEditorKeyDown} onClick={e=>{const a=getAutocomplete(e.target.value,e.target.selectionStart);setAutocomplete(a||{open:false,items:[],index:0,start:0,end:0})}} placeholder={"// Write YOUR solution here.\n// Do not copy a solution — build it from the requirements."} spellCheck="false"/>{autocomplete.open&&<div className="autocompleteMenu">{autocomplete.items.map((item,i)=><button className={i===autocomplete.index?"selected":""} key={item} onMouseDown={e=>{e.preventDefault();insertAutocomplete(item)}}><span>{item}</span><small>Java</small></button>)}</div>}</div>
 <div className="studioStatus"><span>Java workspace</span><span>{workspaceCode.split("\n").length} lines</span></div>
