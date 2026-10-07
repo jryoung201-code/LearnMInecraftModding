@@ -64,7 +64,37 @@ const[quizSubmitted,setQuizSubmitted]=useState(false);
 const[output,setOutput]=useState([]);
 const[chatInput,setChatInput]=useState("");
 const[chatMessages,setChatMessages]=useState([{from:"ai",text:"I'm here! You can ask me about the example, your code, or anything in this lesson."}]);
+const[autocomplete,setAutocomplete]=useState({open:false,items:[],index:0,start:0,end:0});
 const challenge=challengeInfo[current.id];
+const autocompleteWords=[
+"abstract","boolean","break","class","continue","double","else","extends","final","float","for","if","implements","import","int","interface","new","null","package","private","protected","public","return","static","String","super","this","true","void","while",
+"System","out","println","print","printf","Math","Minecraft","Player","world","item","block","entity","StringBuilder"
+];
+const getAutocomplete=(value,pos)=>{
+ const before=value.slice(0,pos);
+ const match=before.match(/[A-Za-z_][A-Za-z0-9_]*$/);
+ if(!match)return null;
+ const word=match[0];
+ if(!word)return null;
+ const items=[...new Set(autocompleteWords.filter(x=>x.toLowerCase().startsWith(word.toLowerCase())&&x!==word))].slice(0,8);
+ return items.length?{open:true,items,index:0,start:pos-word.length,end:pos}:null;
+};
+const insertAutocomplete=(item)=>{
+ const s=workspaceCode.slice(0,autocomplete.start);
+ const e=workspaceCode.slice(autocomplete.end);
+ const next=s+item+e;
+ setWorkspaceCode(next);
+ setAutocomplete({open:false,items:[],index:0,start:0,end:0});
+ requestAnimationFrame(()=>{const el=document.querySelector(".studioCode");if(el){const p=s.length+item.length;el.focus();el.setSelectionRange(p,p)}})
+};
+const handleEditorKeyDown=e=>{
+ if(!autocomplete.open)return;
+ if(e.key==="ArrowDown"){e.preventDefault();setAutocomplete(a=>({...a,index:(a.index+1)%a.items.length}));return}
+ if(e.key==="ArrowUp"){e.preventDefault();setAutocomplete(a=>({...a,index:(a.index-1+a.items.length)%a.items.length}));return}
+ if(e.key==="Escape"){e.preventDefault();setAutocomplete({open:false,items:[],index:0,start:0,end:0});return}
+ if(e.key==="Tab"||e.key==="Enter"){e.preventDefault();insertAutocomplete(autocomplete.items[autocomplete.index])}
+};
+
 const checkCode=()=>{
 const code=workspaceCode;
 if(!code.trim()){setOutput(["Write some code first, then run it."]);return}
@@ -122,7 +152,7 @@ return <div className="javaLesson">
 <div className="studioEditor">
 <div className="studioTitle"><span>CODE</span><b>Workspace</b><small>Write your solution here.</small></div>
 <div className="editorActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button><button className="runButton" onClick={checkCode}><ChevronRight size={13}/> Run</button></div>
-<textarea className="studioCode" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Write YOUR solution here.\n// Do not copy a solution — build it from the requirements."} spellCheck="false"/>
+<div className="editorWrap"><textarea className="studioCode" value={workspaceCode} onChange={e=>{setWorkspaceCode(e.target.value);const a=getAutocomplete(e.target.value,e.target.selectionStart);setAutocomplete(a||{open:false,items:[],index:0,start:0,end:0})}} onKeyDown={handleEditorKeyDown} onClick={e=>{const a=getAutocomplete(e.target.value,e.target.selectionStart);setAutocomplete(a||{open:false,items:[],index:0,start:0,end:0})}} placeholder={"// Write YOUR solution here.\n// Do not copy a solution — build it from the requirements."} spellCheck="false"/>{autocomplete.open&&<div className="autocompleteMenu">{autocomplete.items.map((item,i)=><button className={i===autocomplete.index?"selected":""} key={item} onMouseDown={e=>{e.preventDefault();insertAutocomplete(item)}}><span>{item}</span><small>Java</small></button>)}</div>}</div>
 <div className="studioStatus"><span>Java workspace</span><span>{workspaceCode.split("\n").length} lines</span></div>
 </div>
 
