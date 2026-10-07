@@ -1,4 +1,7 @@
 import http from "node:http";
+import pg from "pg";
+
+const { Pool } = pg;
 
 const PORT = process.env.PORT || 10000;
 const TINYFISH_API_KEY = process.env.TINYFISH_API_KEY;
@@ -7,14 +10,21 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "https://jryoung201-code.gi
 const FREE_PLAN_INPUT_LIMIT = 1500;
 const FREE_PLAN_OUTPUT_LIMIT = 280;
 const FREE_PLAN_WINDOW_MS = 8 * 60 * 60 * 1000;
+const FREE_PLAN_WINDOW_HOURS = 8;
 
-// Simple in-memory Free Plan usage tracker.
-// Usage resets after 8 hours. A persistent store should be used if strict
-// limits must survive Render restarts.
-const usage = new Map();
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL.includes("localhost")
+        ? false
+        : { rejectUnauthorized: false }
+    })
+  : null;
+
+const memoryUsage = new Map();
 
 function wordCount(value){
-  return String(value || "").trim().split(/\\s+/).filter(Boolean).length;
+  return String(value || "").trim().split(/\s+/).filter(Boolean).length;
 }
 
 function getClientId(req){
@@ -22,63 +32,168 @@ function getClientId(req){
   return String(forwarded || req.socket.remoteAddress || "unknown").split(",")[0].trim();
 }
 
-function getUsage(req){
-  const id=getClientId(req);
-  const now=Date.now();
-  let entry=usage.get(id);
-  if(!entry || now-entry.startedAt>=FREE_PLAN_WINDOW_MS){
-    entry={startedAt:now,input:0,output:0};
-    usage.set(id,entry);
-  }
-  return entry;
+function newWindow(){
+  return {
+    startedAt: new Date(),
+    input: 0,
+    output: 0
+  };
 }
 
 function quotaError(entry){
+  const startedAt = entry.startedAt instanceof Date ? entry.startedAt : new Date(entry.startedAt);
   return {
     error:"Free Plan AI limit reached.",
+    upgradeMessage:"You've reached the Free Plan AI limit. Upgrade your plan to chat more without this Free Plan limit.",
     plan:"Free",
-    resetAt:new Date(entry.startedAt+FREE_PLAN_WINDOW_MS).toISOString(),
+    windowHours:FREE_PLAN_WINDOW_HOURS,
+    resetAt:new Date(startedAt.getTime()+FREE_PLAN_WINDOW_MS).toISOString(),
     inputRemaining:Math.max(0,FREE_PLAN_INPUT_LIMIT-entry.input),
     outputRemaining:Math.max(0,FREE_PLAN_OUTPUT_LIMIT-entry.output)
   };
 }
 
-function send(res,status,data){
-  res.writeHead(status,{"Content-Type":"application/json","Access-Control-Allow-Origin":ALLOWED_ORIGIN,"Access-Control-Allow-Headers":"Content-Type","Access-Control-Allow-Methods":"POST,OPTIONS"});
-  res.end(JSON.stringify(data));
-}
+async function getPersistentUsage(clientId){
+  const result = await pool.query(
+    "SELECT client_id, window_started_at, input_words, output_words FROM ai_free_usage WHERE client_id = $1",
+    [clientId]
+  );
 
-function safeTeacherFallback(section){
-  return `I won't give you the finished answer for this exercise. I'll help you build it yourself.
-
-For ${section || "this section"}, start by identifying the required Java concept from the challenge. Then write the smallest part you know. If you're stuck, tell me what part is confusing and I'll give you one hint at a time.`;
-}
-
-function safeguardTeacherAnswer(answer,section){
-  if(typeof answer !== "string") return safeTeacherFallback(section);
-  const text=answer.trim();
-  const lower=text.toLowerCase();
-
-  const forbiddenPhrases=[
-    "here's the solution","here is the solution","here's the answer","here is the answer",
-    "the complete solution","complete solution","copy this","copy the following",
-    "use this exact code","paste this","just use this code","the answer is:"
-  ];
-
-  const hasForbiddenPhrase=forbiddenPhrases.some(x=>lower.includes(x));
-  const hasFullCodeFence=/```[\\s\\S]*```/.test(text);
-  const hasMultiLineJavaSolution=/(?:^|\\n)\\s*(?:String|int|double|boolean|public|private|class|if|for|while)\\b[^\\n]*[;{][\\s\\S]*\\n\\s*(?:System\\.out|else|return|new\\s+)\\b/.test(text);
-
-  if(hasForbiddenPhrase||hasFullCodeFence||hasMultiLineJavaSolution){
-    return safeTeacherFallback(section);
+  if(!result.rows[0]){
+    const entry=newWindow();
+    await pool.query(
+      "INSERT INTO ai_free_usage (client_id, window_started_at, input_words, output_words) VALUES ($1,$2,0,0) ON CONFLICT (client_id) DO NOTHING",
+      [clientId,entry.startedAt]
+    );
+    return {startedAt:entry.startedAt,input:0,output:0};
   }
 
-  // Never let a response turn the student's exercise into a copy/paste solution.
-  if(text.length>1800){
-    return safeTeacherFallback(section);
+  const row=result.rows[0];
+  const startedAt=new Date(row.window_started_at);
+  if(Date.now()-startedAt.getTime()>=FREE_PLAN_WINDOW_MS){
+    const entry=newWindow();
+    await pool.query(
+      "UPDATE ai_free_usage SET window_started_at=$2,input_words=0,output_words=0,updated_at=NOW() WHERE client_id=$1",
+      [clientId,entry.startedAt]
+    );
+    return {startedAt:entry.startedAt,input:0,output:0};
   }
 
-  return text;
+  return {
+    startedAt,
+    input:Number(row.input_words),
+    output:Number(row.output_words)
+  };
+}
+
+async function reserveInput(clientId,inputWords){
+  if(!pool){
+    const now=Date.now();
+    let entry=memoryUsage.get(clientId);
+    if(!entry || now-entry.startedAt.getTime()>=FREE_PLAN_WINDOW_MS){
+      entry=newWindow();
+      memoryUsage.set(clientId,entry);
+    }
+    if(entry.input+inputWords>FREE_PLAN_INPUT_LIMIT) return {ok:false,entry};
+    entry.input+=inputWords;
+    return {ok:true,entry};
+  }
+
+  const client=await pool.connect();
+  try{
+    await client.query("BEGIN");
+    const rowResult=await client.query(
+      "SELECT window_started_at,input_words,output_words FROM ai_free_usage WHERE client_id=$1 FOR UPDATE",
+      [clientId]
+    );
+
+    let entry;
+    if(!rowResult.rows[0]){
+      entry=newWindow();
+      await client.query(
+        "INSERT INTO ai_free_usage (client_id,window_started_at,input_words,output_words,updated_at) VALUES ($1,$2,$3,0,NOW())",
+        [clientId,entry.startedAt,inputWords]
+      );
+      await client.query("COMMIT");
+      return {ok:true,entry:{...entry,input:inputWords}};
+    }
+
+    const row=rowResult.rows[0];
+    const startedAt=new Date(row.window_started_at);
+    if(Date.now()-startedAt.getTime()>=FREE_PLAN_WINDOW_MS){
+      entry=newWindow();
+      await client.query(
+        "UPDATE ai_free_usage SET window_started_at=$2,input_words=$3,output_words=0,updated_at=NOW() WHERE client_id=$1",
+        [clientId,entry.startedAt,inputWords]
+      );
+      await client.query("COMMIT");
+      return {ok:true,entry:{...entry,input:inputWords}};
+    }
+
+    entry={startedAt,input:Number(row.input_words),output:Number(row.output_words)};
+    if(entry.input+inputWords>FREE_PLAN_INPUT_LIMIT){
+      await client.query("ROLLBACK");
+      return {ok:false,entry};
+    }
+
+    await client.query(
+      "UPDATE ai_free_usage SET input_words=input_words+$2,updated_at=NOW() WHERE client_id=$1",
+      [clientId,inputWords]
+    );
+    entry.input+=inputWords;
+    await client.query("COMMIT");
+    return {ok:true,entry};
+  }catch(error){
+    try{await client.query("ROLLBACK");}catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
+
+async function refundInput(clientId,inputWords){
+  if(inputWords<=0) return;
+  if(!pool){
+    const entry=memoryUsage.get(clientId);
+    if(entry) entry.input=Math.max(0,entry.input-inputWords);
+    return;
+  }
+  await pool.query(
+    "UPDATE ai_free_usage SET input_words=GREATEST(0,input_words-$2),updated_at=NOW() WHERE client_id=$1",
+    [clientId,inputWords]
+  );
+}
+
+async function recordOutput(clientId,outputWords){
+  if(outputWords<=0) return;
+  if(!pool){
+    const entry=memoryUsage.get(clientId);
+    if(entry) entry.output+=outputWords;
+    return;
+  }
+  await pool.query(
+    "UPDATE ai_free_usage SET output_words=output_words+$2,updated_at=NOW() WHERE client_id=$1",
+    [clientId,outputWords]
+  );
+}
+
+async function getUsage(clientId){
+  if(!pool){
+    const now=Date.now();
+    let entry=memoryUsage.get(clientId);
+    if(!entry || now-entry.startedAt.getTime()>=FREE_PLAN_WINDOW_MS){
+      entry=newWindow();
+      memoryUsage.set(clientId,entry);
+    }
+    return entry;
+  }
+  return getPersistentUsage(clientId);
+}
+
+function limitWords(value,maxWords){
+  const words=String(value || "").trim().split(/\s+/).filter(Boolean);
+  if(words.length<=maxWords) return String(value || "").trim();
+  return words.slice(0,maxWords).join(" ")+"…";
 }
 
 async function askTinyFish({message,section,code}){
