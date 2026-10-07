@@ -1,7 +1,16 @@
 import React,{useEffect,useState}from"react";
 import{Bot,CheckCircle2,ChevronRight,Lightbulb,RotateCcw,Send,Sparkles,Trophy,X}from"lucide-react";
 
-const sections=[
+const challengeInfo={
+variables:{goal:"Create a String variable for a player's name, then print that variable.",example:'String playerName = "Steve";\n\nSystem.out.println(playerName);',hint:"Your variable does not have to be called playerName, and the name does not have to be Steve. Use valid Java and print the variable you created."},
+strings:{goal:"Create text and number variables, then print them.",example:'String username = "Alex";\nint level = 10;\n\nSystem.out.println(username);\nSystem.out.println(level);',hint:"Variable names and values can be different. The important part is using the correct Java types and printing them."},
+conditions:{goal:"Use an if/else decision based on a number.",example:'int diamonds = 12;\n\nif (diamonds >= 10) {\n    System.out.println("Enough!");\n} else {\n    System.out.println("Need more.");\n}',hint:"The exact messages and number can change. Your code needs a real condition with an if and an else path."},
+methods:{goal:"Create a method that takes a name and prints a greeting, then call it.",example:'public static void greet(String name) {\n    System.out.println("Hello, " + name);\n}\n\ngreet("Alex");',hint:"The method and parameter can have different names. What matters is that you define a method, give it a String parameter, and call it."},
+classes:{goal:"Create a class with a name field and create an object from it.",example:'class Pet {\n    String name;\n}\n\nPet myPet = new Pet();\nmyPet.name = "Buddy";',hint:"Your class and object can have different names. The important idea is class blueprint → new object."},
+loops:{goal:"Use a loop to repeat a print action.",example:'for (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}',hint:"The counter, limit, and printed value can be different. The code needs to use a loop to repeat the work."},
+minecraft:{goal:"Write Java that shows how a mod could react to a Minecraft situation.",example:'if (player.isSneaking()) {\n    System.out.println("Player is sneaking!");\n}',hint:"This is a concept exercise, not a real Fabric build yet. Use Java structure to show a Minecraft-style condition."},
+challenge:{goal:"Make a small Java program that stores a player name and diamond count, then makes a decision.",example:'String playerName = "Alex";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + " has enough diamonds!");\n} else {\n    System.out.println(playerName + " needs more diamonds.");\n}',hint:"Your player name, variable names, number, and messages can all be different. The structure and meaning are what matter."}
+};\n\nconst sections=[
 {id:"welcome",title:"Welcome to Java",body:<><p>Java is the language we will use to build our Minecraft mods. You do <b>not</b> need to know everything about Java before starting.</p><p>Think of Java as a language for giving the computer instructions. Minecraft and Fabric provide useful tools; your job is to combine them.</p><div className="tip"><Lightbulb/><div><b>Beginner rule</b><p>Do not try to memorize every symbol. Learn what each piece does, then practice changing it.</p></div></div></>},
 {id:"variables",title:"1. Variables: storing information",body:<><p>A variable is a named place where your program can keep a value.</p><Code text={"String playerName = \"Alex\";\nint diamonds = 12;\ndouble speed = 0.25;\nboolean hasPermission = true;"}/><div className="explainGrid"><div><b>String</b><span>Text such as a player name.</span></div><div><b>int</b><span>Whole numbers such as 12.</span></div><div><b>double</b><span>Numbers that can contain decimals.</span></div><div><b>boolean</b><span>Either true or false.</span></div></div><p>For Minecraft mods, variables might store a player's name, a block count, a setting, or whether something is enabled.</p></>},
 {id:"strings",title:"2. Text and numbers",body:<><p>You will constantly work with text and numbers in mods.</p><Code text={"String name = \"Steve\";\nint level = 5;\n\nSystem.out.println(name);\nSystem.out.println(\"Level: \" + level);"}/><p>The <code>+</code> joins text together. This is called <b>concatenation</b>.</p><div className="miniExercise"><b>Try it:</b><span>Change <code>level</code> to <code>10</code>. What do you think the second line prints?</span></div></>},
@@ -51,6 +60,38 @@ const[quizAnswers,setQuizAnswers]=useState({});
 const[workspaceCode,setWorkspaceCode]=useState("");
 const[quizSubmitted,setQuizSubmitted]=useState(false);
 const[output,setOutput]=useState([]);
+const[chatInput,setChatInput]=useState("");
+const[chatMessages,setChatMessages]=useState([{from:"ai",text:"I'm here! You can ask me about the example, your code, or anything in this lesson."}]);
+const challenge=challengeInfo[current.id];
+const checkCode=()=>{
+const code=workspaceCode;
+if(!code.trim()){setOutput(["Write some code first, then run it."]);return}
+const checks={
+variables:/\\bString\\s+\\w+\\s*=/.test(code)&&/System\\.out\\.println\\s*\\(\\s*\\w+\\s*\\)/.test(code),
+strings:/\\bString\\s+\\w+\\s*=/.test(code)&&/\\bint\\s+\\w+\\s*=/.test(code)&&/System\\.out\\.println/.test(code),
+conditions:/\\bif\\s*\\(/.test(code)&&/\\belse\\b/.test(code),
+methods:/(?:void|int|String|boolean|double)\\s+\\w+\\s*\\([^)]*String\\s+\\w+[^)]*\\)/.test(code)&&/\\w+\\s*\\(.*\\)\\s*;/.test(code),
+classes:/\\bclass\\s+\\w+/.test(code)&&/\\bnew\\s+\\w+\\s*\\(/.test(code),
+loops:/\\bfor\\s*\\(/.test(code)||/\\bwhile\\s*\\(/.test(code),
+minecraft:/\\bif\\s*\\(/.test(code)&&/(player|Player|sneak|Minecraft|world|item|block)/.test(code),
+challenge:/\\bString\\s+\\w+\\s*=/.test(code)&&/\\bint\\s+\\w+\\s*=/.test(code)&&/\\bif\\s*\\(/.test(code)&&/System\\.out\\.println/.test(code)
+};
+const ok=challenge?checks[current.id]!==false:code.includes("System.out");
+setOutput(ok?["✓ Your code matches the goal!","The exact variable names, values, and messages can be different.","Keep coding like this — understand the idea, don't just copy the example."]:["✗ Not quite yet.","Your code does not match the goal for this section yet.","You can use different names and values, but the required Java concept still needs to be present."]);
+};
+const sendTeacher=()=>{
+if(!chatInput.trim())return;
+const user=chatInput.trim();
+const lower=user.toLowerCase();
+let reply;
+if(lower.includes("different")||lower.includes("username")||lower.includes("name"))reply="Yes! You can use a different variable name. For example, Username works just like playerName as long as it is a valid Java variable name and you use the same name when you print it.";
+else if(lower.includes("error")||lower.includes("wrong"))reply="That's okay. Read the first error, check the line it points to, and look for spelling, brackets, semicolons, and mismatched variable names. You can paste the code here and I'll help explain it.";
+else if(lower.includes("example")||lower.includes("want"))reply=challenge?challenge.hint:"The example is showing the concept. Your solution does not need to be identical — it needs to use the Java idea correctly.";
+else if(lower.includes("why")||lower.includes("how"))reply="Think about what each line is doing, not just what it looks like. Tell me which line you're wondering about and I'll explain it step by step.";
+else reply=challenge?challenge.hint:"Ask me about the Java concept you're learning, what a line means, or why your code works.";
+setChatMessages(x=>[...x,{from:"user",text:user},{from:"ai",text:reply}]);
+setChatInput("");
+};
 
 useEffect(()=>setSection("welcome"),[]);
 return <div className="javaLesson">
@@ -63,7 +104,13 @@ return <div className="javaLesson">
 <div className="teacherPanel">
 <div className="teacherHeader"><div className="teacherAvatar"><Bot size={18}/></div><div><b>AI Teacher</b><small>Lesson 1 · Java Foundations</small></div><Sparkles size={15}/></div>
 <div className="teacherTyping"><span className="teacherLabel">TEACHING</span><h2>{current.title}</h2><div className="typingText"><span>{teacherText.slice(0,teacherChars)}</span><span className="typingCursor">▌</span></div>
-<div className="teacherTask"><b>What to do</b><span>{current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":current.id==="challenge"?"Write the challenge in the code workspace, then run it.":"Read the explanation, then change the example in the workspace and see what happens."}</span></div>
+<div className="teacherTask"><b>What to do</b><span>{challenge?challenge.goal:current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":"Read the explanation, then change the example in the workspace and see what happens."}</span></div>
+{challenge&&<div className="teacherExample"><div><b>WHAT I WANT YOU TO MAKE</b><small>Different names, values, and messages are okay.</small></div><pre>{challenge.example}</pre></div>}
+<div className="teacherChat">
+<div className="chatTitle"><span>CHAT WITH YOUR TEACHER</span></div>
+<div className="chatMessages">{chatMessages.map((m,i)=><div className={m.from==="ai"?"chatAI":"chatUser"} key={i}><b>{m.from==="ai"?"AI Teacher":"You"}</b><span>{m.text}</span></div>)}</div>
+<div className="chatInput"><input value={chatInput} placeholder="Ask your teacher..." onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendTeacher()}/><button onClick={sendTeacher}><Send size={13}/></button></div>
+</div>
 </div>
 <div className="teacherProgress"><span>Part {index+1} of {sections.length}</span><div><i style={{width:((index+1)/sections.length*100)+"%"}}/></div></div>
 <div className="teacherNav"><button className="secondary" disabled={index===0} onClick={()=>setSection(sections[Math.max(0,index-1)].id)}>← Previous</button>{index<sections.length-1?<button className="primary" onClick={()=>setSection(sections[index+1].id)}>Next <ChevronRight size={15}/></button>:<span>Checkpoint</span>}</div>
@@ -72,8 +119,8 @@ return <div className="javaLesson">
 
 <div className="studioEditor">
 <div className="studioTitle"><span>CODE</span><b>Workspace</b><small>Write your solution here.</small></div>
-<div className="editorActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button><button className="runButton" onClick={()=>{const lines=workspaceCode.split("\n");const vars={};lines.forEach(line=>{const m=line.match(/\\b(?:String|int|double|boolean)\\s+(\\w+)\\s*=\\s*(.*?);\\s*$/);if(m){let v=m[2].trim();if(v.startsWith('"')&&v.endsWith('"'))v=v.slice(1,-1);vars[m[1]]=v;}});const out=lines.filter(l=>l.includes("System.out.println")).map(l=>{let m=l.match(/System\\.out\\.println\\((.*)\\);/);if(!m)return "";let expr=m[1];expr=expr.replace(/"([^"]*)"/g,"$1");Object.keys(vars).forEach(k=>{expr=expr.replace(new RegExp("\\b"+k+"\\b","g"),vars[k])});return expr.replace(/\\s*\\+\\s*/g,"");}).filter(Boolean);setOutput(out.length?out:["Code ran, but there was no System.out.println output."]);}}><ChevronRight size={13}/> Run</button></div>
-<textarea className="studioCode" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Try the problem here!\n// Example:\nString playerName = \"YOUR_NAME\";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + \" has enough diamonds!\");\n}"} spellCheck="false"/>
+<div className="editorActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button><button className="runButton" onClick={checkCode}><ChevronRight size={13}/> Run</button></div>
+<textarea className="studioCode" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Write YOUR version of the example here.\n// Different names and values are allowed!\n"+(challenge?.example||"") } spellCheck="false"/>
 <div className="studioStatus"><span>Java workspace</span><span>{workspaceCode.split("\n").length} lines</span></div>
 </div>
 
