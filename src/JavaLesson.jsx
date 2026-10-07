@@ -10,7 +10,9 @@ classes:{goal:"Create a class with a name field and create an object from it.",e
 loops:{goal:"Use a loop to repeat a print action.",example:'for (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}',hint:"The counter, limit, and printed value can be different. The code needs to use a loop to repeat the work."},
 minecraft:{goal:"Write Java that shows how a mod could react to a Minecraft situation.",example:'if (player.isSneaking()) {\n    System.out.println("Player is sneaking!");\n}',hint:"This is a concept exercise, not a real Fabric build yet. Use Java structure to show a Minecraft-style condition."},
 challenge:{goal:"Make a small Java program that stores a player name and diamond count, then makes a decision.",example:'String playerName = "Alex";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + " has enough diamonds!");\n} else {\n    System.out.println(playerName + " needs more diamonds.");\n}',hint:"Your player name, variable names, number, and messages can all be different. The structure and meaning are what matter."}
-};\n\nconst sections=[
+};
+
+const sections=[
 {id:"welcome",title:"Welcome to Java",body:<><p>Java is the language we will use to build our Minecraft mods. You do <b>not</b> need to know everything about Java before starting.</p><p>Think of Java as a language for giving the computer instructions. Minecraft and Fabric provide useful tools; your job is to combine them.</p><div className="tip"><Lightbulb/><div><b>Beginner rule</b><p>Do not try to memorize every symbol. Learn what each piece does, then practice changing it.</p></div></div></>},
 {id:"variables",title:"1. Variables: storing information",body:<><p>A variable is a named place where your program can keep a value.</p><Code text={"String playerName = \"Alex\";\nint diamonds = 12;\ndouble speed = 0.25;\nboolean hasPermission = true;"}/><div className="explainGrid"><div><b>String</b><span>Text such as a player name.</span></div><div><b>int</b><span>Whole numbers such as 12.</span></div><div><b>double</b><span>Numbers that can contain decimals.</span></div><div><b>boolean</b><span>Either true or false.</span></div></div><p>For Minecraft mods, variables might store a player's name, a block count, a setting, or whether something is enabled.</p></>},
 {id:"strings",title:"2. Text and numbers",body:<><p>You will constantly work with text and numbers in mods.</p><Code text={"String name = \"Steve\";\nint level = 5;\n\nSystem.out.println(name);\nSystem.out.println(\"Level: \" + level);"}/><p>The <code>+</code> joins text together. This is called <b>concatenation</b>.</p><div className="miniExercise"><b>Try it:</b><span>Change <code>level</code> to <code>10</code>. What do you think the second line prints?</span></div></>},
@@ -67,14 +69,14 @@ const checkCode=()=>{
 const code=workspaceCode;
 if(!code.trim()){setOutput(["Write some code first, then run it."]);return}
 const checks={
-variables:/\bString\s+\w+\s*=/.test(code)&&/System\.out\.println\s*\\(\s*\w+\s*\\)/.test(code),
+variables:/\bString\s+\w+\s*=/.test(code)&&/System\.out\.println\s*\(\s*\w+\s*\)/.test(code),
 strings:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/System\.out\.println/.test(code),
-conditions:/\bif\s*\\(/.test(code)&&/\belse\\b/.test(code),
-methods:/(?:void|int|String|boolean|double)\s+\w+\s*\\([^)]*String\s+\w+[^)]*\\)/.test(code)&&/\w+\s*\\(.*\\)\s*;/.test(code),
-classes:/\bclass\s+\w+/.test(code)&&/\bnew\s+\w+\s*\\(/.test(code),
-loops:/\bfor\s*\\(/.test(code)||/\bwhile\s*\\(/.test(code),
-minecraft:/\bif\s*\\(/.test(code)&&/(player|Player|sneak|Minecraft|world|item|block)/.test(code),
-challenge:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/\bif\s*\\(/.test(code)&&/System\.out\.println/.test(code)
+conditions:/\bif\s*\(/.test(code)&&/\belse\\b/.test(code),
+methods:/(?:void|int|String|boolean|double)\s+\w+\s*\([^)]*String\s+\w+[^)]*\)/.test(code)&&/\w+\s*\(.*\)\s*;/.test(code),
+classes:/\bclass\s+\w+/.test(code)&&/\bnew\s+\w+\s*\(/.test(code),
+loops:/\bfor\s*\(/.test(code)||/\bwhile\s*\(/.test(code),
+minecraft:/\bif\s*\(/.test(code)&&/(player|Player|sneak|Minecraft|world|item|block)/.test(code),
+challenge:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/\bif\s*\(/.test(code)&&/System\.out\.println/.test(code)
 };
 const ok=challenge?checks[current.id]!==false:code.includes("System.out");
 setOutput(ok?["✓ Your code matches the goal!","The exact variable names, values, and messages can be different.","Keep coding like this — understand the idea, don't just copy the example."]:["✗ Not quite yet.","Your code does not match the goal for this section yet.","You can use different names and values, but the required Java concept still needs to be present."]);
