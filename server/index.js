@@ -4,6 +4,45 @@ const PORT = process.env.PORT || 10000;
 const TINYFISH_API_KEY = process.env.TINYFISH_API_KEY;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "https://jryoung201-code.github.io";
 
+const FREE_PLAN_INPUT_LIMIT = 1500;
+const FREE_PLAN_OUTPUT_LIMIT = 280;
+const FREE_PLAN_WINDOW_MS = 8 * 60 * 60 * 1000;
+
+// Simple in-memory Free Plan usage tracker.
+// Usage resets after 8 hours. A persistent store should be used if strict
+// limits must survive Render restarts.
+const usage = new Map();
+
+function wordCount(value){
+  return String(value || "").trim().split(/\\s+/).filter(Boolean).length;
+}
+
+function getClientId(req){
+  const forwarded = req.headers["x-forwarded-for"];
+  return String(forwarded || req.socket.remoteAddress || "unknown").split(",")[0].trim();
+}
+
+function getUsage(req){
+  const id=getClientId(req);
+  const now=Date.now();
+  let entry=usage.get(id);
+  if(!entry || now-entry.startedAt>=FREE_PLAN_WINDOW_MS){
+    entry={startedAt:now,input:0,output:0};
+    usage.set(id,entry);
+  }
+  return entry;
+}
+
+function quotaError(entry){
+  return {
+    error:"Free Plan AI limit reached.",
+    plan:"Free",
+    resetAt:new Date(entry.startedAt+FREE_PLAN_WINDOW_MS).toISOString(),
+    inputRemaining:Math.max(0,FREE_PLAN_INPUT_LIMIT-entry.input),
+    outputRemaining:Math.max(0,FREE_PLAN_OUTPUT_LIMIT-entry.output)
+  };
+}
+
 function send(res,status,data){
   res.writeHead(status,{"Content-Type":"application/json","Access-Control-Allow-Origin":ALLOWED_ORIGIN,"Access-Control-Allow-Headers":"Content-Type","Access-Control-Allow-Methods":"POST,OPTIONS"});
   res.end(JSON.stringify(data));
