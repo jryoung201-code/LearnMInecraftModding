@@ -35,26 +35,38 @@ const quiz=[
 const[reset,setReset]=useState(false);
 const[quizAnswers,setQuizAnswers]=useState({});
 const[workspaceCode,setWorkspaceCode]=useState("");
-const[quizSubmitted,setQuizSubmitted]=useState(false);
+const[quizSubmitted,setQuizSubmitted]=useState(false);\nconst[output,setOutput]=useState([]);
 
 useEffect(()=>setSection("welcome"),[]);
 return <div className="javaLesson">
 <div className="lessonTop"><div><div className="meta"><span>BEGINNER</span><span>LESSON 1</span><span>45–60 MIN</span></div><h1>Java Foundations</h1><p className="lead">Your first step into Minecraft modding. We will learn Java one small idea at a time, then connect it to Minecraft.</p></div><button className="resetBtn" onClick={()=>setReset(!reset)}><RotateCcw size={14}/> Reset</button></div>
 <div className="lessonProgress"><div><i style={{width:((index+1)/sections.length*100)+"%"}}/></div><span>Part {index+1} of {sections.length}</span></div>
-<div className="learningWorkspace">
-<div className="lessonPanel">
-<div className="lessonNav">{sections.map((x,i)=><button className={section===x.id?"lessonPart active":"lessonPart"} key={x.id} onClick={()=>setSection(x.id)}><span>{String(i+1).padStart(2,"0")}</span>{x.title}</button>)}</div>
+
+<div className="codingStudio">
+<div className="studioLeft">
+<div className="backLessons">← Back to Lessons</div>
+<div className="studioLesson"><div className="studioLabel">LESSON + CHAT</div><div className="lessonNav">{sections.map((x,i)=><button className={section===x.id?"lessonPart active":"lessonPart"} key={x.id} onClick={()=>setSection(x.id)}><span>{String(i+1).padStart(2,"0")}</span>{x.title}</button>)}</div></div>
+<div className="studioLessonBody"><span className="sectionEyebrow">PART {index+1}</span><h2>{current.title}</h2>{current.body}{index===sections.length-1&&<Quiz quiz={quiz} answers={quizAnswers} setAnswers={setQuizAnswers} submitted={quizSubmitted} setSubmitted={setQuizSubmitted} onPass={()=>setDone(d=>d.includes("java")?d:[...d,"java"])} />}</div>
 {reset&&<div className="resetBox">This only resets the open section.<button onClick={()=>{setSection("welcome");setReset(false)}}>Start Lesson 1 from the beginning</button></div>}
-<div className="sectionContent"><span className="sectionEyebrow">PART {index+1}</span><h2>{current.title}</h2>{current.body}{index===sections.length-1&&<Quiz quiz={quiz} answers={quizAnswers} setAnswers={setQuizAnswers} submitted={quizSubmitted} setSubmitted={setQuizSubmitted} onPass={()=>setDone(d=>d.includes("java")?d:[...d,"java"])} />}</div>
-<div className="lessonBottom"><button className="secondary" disabled={index===0} onClick={()=>setSection(sections[Math.max(0,index-1)].id)}>← Previous</button>{index<sections.length-1?<button className="primary" onClick={()=>setSection(sections[index+1].id)}>Next <ChevronRight size={16}/></button>:<span className="quizLock">Pass the 80% checkpoint to complete</span>}</div>
+<div className="studioAI">{ai?<AITutor section={current.title} onClose={()=>setAi(false)}/>:<button className="aiOpen" onClick={()=>setAi(true)}><Bot size={15}/> Open AI Tutor</button>}</div>
+<div className="studioNav"><button className="secondary" disabled={index===0} onClick={()=>setSection(sections[Math.max(0,index-1)].id)}>← Previous</button>{index<sections.length-1?<button className="primary" onClick={()=>setSection(sections[index+1].id)}>Next <ChevronRight size={16}/></button>:<span className="quizLock">Pass the 80% checkpoint to complete</span>}</div>
+</div>
+
+<div className="studioEditor">
+<div className="studioTitle"><span>CODE</span><b>Workspace</b><small>Write your solution here.</small></div>
+<div className="editorActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button><button className="runButton" onClick={()=>{const lines=workspaceCode.split("\n");const vars={};lines.forEach(line=>{const m=line.match(/\\b(?:String|int|double|boolean)\\s+(\\w+)\\s*=\\s*(.*?);\\s*$/);if(m){let v=m[2].trim();if(v.startsWith('"')&&v.endsWith('"'))v=v.slice(1,-1);vars[m[1]]=v;}});const out=lines.filter(l=>l.includes("System.out.println")).map(l=>{let m=l.match(/System\\.out\\.println\\((.*)\\);/);if(!m)return "";let expr=m[1];expr=expr.replace(/"([^"]*)"/g,"$1");Object.keys(vars).forEach(k=>{expr=expr.replace(new RegExp("\\b"+k+"\\b","g"),vars[k])});return expr.replace(/\\s*\\+\\s*/g,"");}).filter(Boolean);setOutput(out.length?out:["Code ran, but there was no System.out.println output."]);}}><ChevronRight size={13}/> Run</button></div>
+<textarea className="studioCode" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Try the problem here!\n// Example:\nString playerName = \"YOUR_NAME\";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + \" has enough diamonds!\");\n}"} spellCheck="false"/>
+<div className="studioStatus"><span>Java workspace</span><span>{workspaceCode.split("\n").length} lines</span></div>
+</div>
+
+<div className="studioRight">
+<div className="previewPanel"><div className="panelHeader"><div><span>PREVIEW</span><b>Lesson preview</b></div><Sparkles size={15}/></div><div className="previewContent"><div className="previewBadge">CURRENT LESSON</div><h3>{current.title}</h3><p>{index===sections.length-1&&done.includes("java")?"Lesson completed!":current.id==="challenge"?"Try the challenge in the code workspace.":"Follow the lesson on the left, then practice it in the workspace."}</p><div className="previewMini"><span>PART {index+1}</span><span>{sections.length} TOTAL PARTS</span></div></div></div>
+<div className="outputPanel"><div className="panelHeader"><div><span>OUTPUT</span><b>Console</b></div><button onClick={()=>setOutput([])}><X size={13}/></button></div><div className="console">{output.length?output.map((line,i)=><div key={i}><span>&gt;</span>{line}</div>):<span className="consoleEmpty">Run your code to see output here.</span>}</div></div>
+</div>
+</div>
+
 {index===sections.length-1&&done.includes("java")&&<div className="completeBanner"><Trophy size={20}/><div><b>Lesson 1 complete!</b><span>Next up: setting up your Fabric mod workspace.</span></div></div>}
 </div>
-<div className="lessonAssist"><div className="sideLessonCard"><Sparkles/><b>Beginner mindset</b><p>It is normal for Java to feel weird at first. Read code slowly and ask: “What information is this storing?” and “What action is this doing?”</p><button className="secondary" onClick={()=>setAi(true)}><Bot size={15}/> Open AI Tutor</button></div>{ai&&<AITutor section={current.title} onClose={()=>setAi(false)}/>}</div>
-<div className="workPanel"><div className="workHeader"><div><span>WORK SPACE</span><b>Try it yourself</b><small>Write or change the code from this lesson here.</small></div><div className="workActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button></div></div><textarea className="workspaceEditor" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Try the problem here!\n// Example:\nString playerName = \"YOUR_NAME\";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + \" has enough diamonds!\");\n}"} spellCheck="false"/><div className="workFooter"><span><Sparkles size={13}/> Practice area — your code will stay here while you move through the lesson.</span><span>{workspaceCode.split("\n").length} lines</span></div></div>
-</div>}
-</div>
-}
-
 function Quiz({quiz,answers,setAnswers,submitted,setSubmitted,onPass}){
 const score=quiz.reduce((n,x,i)=>n+(answers[i]===x.a?1:0),0); const percent=Math.round(score/quiz.length*100);
 const submit=()=>{setSubmitted(true);if(percent>=80)onPass()};
