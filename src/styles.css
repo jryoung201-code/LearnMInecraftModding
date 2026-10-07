@@ -176,3 +176,21 @@
 .teacherAsk input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:#c7d8e8;padding:9px;font-size:9px}
 .teacherAsk input::placeholder{color:#526983}
 .teacherAsk button{border:0;border-left:1px solid #203750;background:#0c1b2b;color:var(--cyan);padding:0 10px;cursor:pointer}
+
+
+/* AI Teacher Markdown */
+.teacherMessage{font-size:10px;line-height:1.8;color:#b8c9db}
+.teacherMessage p{margin:0 0 12px}
+.teacherMessage p:last-child{margin-bottom:0}
+.teacherMessage strong{color:#fff;font-weight:700}
+.teacherMessage em{color:#c8d8e8}
+.teacherMessage code{padding:2px 5px;border-radius:4px;background:#0b1725;color:#69d9ff;font:9px ui-monospace,SFMono-Regular,Consolas,monospace}
+.teacherMessage pre{margin:10px 0 12px;padding:12px;overflow-x:auto;border:1px solid #203750;border-radius:8px;background:#07111c}
+.teacherMessage pre code{padding:0;background:transparent;color:#c8d8e8;font:9px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace}
+.teacherMessage ul,.teacherMessage ol{margin:8px 0 12px;padding-left:20px}
+.teacherMessage li{margin:4px 0}
+.teacherMessage h1,.teacherMessage h2,.teacherMessage h3{margin:14px 0 8px;color:#fff;font-family:"Space Grotesk",sans-serif}
+.teacherMessage h1{font-size:16px}.teacherMessage h2{font-size:14px}.teacherMessage h3{font-size:12px}
+.teacherMessage a{color:var(--cyan)}
+.teacherMessage blockquote{margin:10px 0;padding:8px 10px;border-left:2px solid var(--cyan);background:#0c1827;color:#9fb2c7}
+.teacherMessage hr{border:0;border-top:1px solid #203750;margin:12px 0}
