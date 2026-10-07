@@ -34,22 +34,24 @@ const quiz=[
 ];
 const[reset,setReset]=useState(false);
 const[quizAnswers,setQuizAnswers]=useState({});
+const[workspaceCode,setWorkspaceCode]=useState("");
 const[quizSubmitted,setQuizSubmitted]=useState(false);
 
 useEffect(()=>setSection("welcome"),[]);
 return <div className="javaLesson">
 <div className="lessonTop"><div><div className="meta"><span>BEGINNER</span><span>LESSON 1</span><span>45–60 MIN</span></div><h1>Java Foundations</h1><p className="lead">Your first step into Minecraft modding. We will learn Java one small idea at a time, then connect it to Minecraft.</p></div><button className="resetBtn" onClick={()=>setReset(!reset)}><RotateCcw size={14}/> Reset</button></div>
 <div className="lessonProgress"><div><i style={{width:((index+1)/sections.length*100)+"%"}}/></div><span>Part {index+1} of {sections.length}</span></div>
-<div className="beginnerLayout"><div>
+<div className="learningWorkspace">
+<div className="lessonPanel">
 <div className="lessonNav">{sections.map((x,i)=><button className={section===x.id?"lessonPart active":"lessonPart"} key={x.id} onClick={()=>setSection(x.id)}><span>{String(i+1).padStart(2,"0")}</span>{x.title}</button>)}</div>
 {reset&&<div className="resetBox">This only resets the open section.<button onClick={()=>{setSection("welcome");setReset(false)}}>Start Lesson 1 from the beginning</button></div>}
 <div className="sectionContent"><span className="sectionEyebrow">PART {index+1}</span><h2>{current.title}</h2>{current.body}{index===sections.length-1&&<Quiz quiz={quiz} answers={quizAnswers} setAnswers={setQuizAnswers} submitted={quizSubmitted} setSubmitted={setQuizSubmitted} onPass={()=>setDone(d=>d.includes("java")?d:[...d,"java"])} />}</div>
 <div className="lessonBottom"><button className="secondary" disabled={index===0} onClick={()=>setSection(sections[Math.max(0,index-1)].id)}>← Previous</button>{index<sections.length-1?<button className="primary" onClick={()=>setSection(sections[index+1].id)}>Next <ChevronRight size={16}/></button>:<span className="quizLock">Pass the 80% checkpoint to complete</span>}</div>
 {index===sections.length-1&&done.includes("java")&&<div className="completeBanner"><Trophy size={20}/><div><b>Lesson 1 complete!</b><span>Next up: setting up your Fabric mod workspace.</span></div></div>}
 </div>
-<div className="sideLessonCard"><Sparkles/><b>Beginner mindset</b><p>It is normal for Java to feel weird at first. Read code slowly and ask: “What information is this storing?” and “What action is this doing?”</p><button className="secondary" onClick={()=>setAi(true)}><Bot size={15}/> Ask AI Tutor</button></div>
-</div>
-{ai&&<AITutor section={current.title} onClose={()=>setAi(false)}/>}
+<div className="lessonAssist"><div className="sideLessonCard"><Sparkles/><b>Beginner mindset</b><p>It is normal for Java to feel weird at first. Read code slowly and ask: “What information is this storing?” and “What action is this doing?”</p><button className="secondary" onClick={()=>setAi(true)}><Bot size={15}/> Open AI Tutor</button></div>{ai&&<AITutor section={current.title} onClose={()=>setAi(false)}/>}</div>
+<div className="workPanel"><div className="workHeader"><div><span>WORK SPACE</span><b>Try it yourself</b><small>Write or change the code from this lesson here.</small></div><div className="workActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button></div></div><textarea className="workspaceEditor" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Try the problem here!\n// Example:\nString playerName = \"YOUR_NAME\";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + \" has enough diamonds!\");\n}"} spellCheck="false"/><div className="workFooter"><span><Sparkles size={13}/> Practice area — your code will stay here while you move through the lesson.</span><span>{workspaceCode.split("\n").length} lines</span></div></div>
+</div>}
 </div>
 }
 
