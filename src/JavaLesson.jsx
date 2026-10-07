@@ -2,14 +2,14 @@ import React,{useEffect,useState}from"react";
 import{Bot,CheckCircle2,ChevronRight,Lightbulb,RotateCcw,Send,Sparkles,Trophy,X}from"lucide-react";
 
 const challengeInfo={
-variables:{goal:"Create a String variable for a player's name, then print that variable.",example:'String playerName = "Steve";\n\nSystem.out.println(playerName);',hint:"Your variable does not have to be called playerName, and the name does not have to be Steve. Use valid Java and print the variable you created."},
-strings:{goal:"Create text and number variables, then print them.",example:'String username = "Alex";\nint level = 10;\n\nSystem.out.println(username);\nSystem.out.println(level);',hint:"Variable names and values can be different. The important part is using the correct Java types and printing them."},
-conditions:{goal:"Use an if/else decision based on a number.",example:'int diamonds = 12;\n\nif (diamonds >= 10) {\n    System.out.println("Enough!");\n} else {\n    System.out.println("Need more.");\n}',hint:"The exact messages and number can change. Your code needs a real condition with an if and an else path."},
-methods:{goal:"Create a method that takes a name and prints a greeting, then call it.",example:'public static void greet(String name) {\n    System.out.println("Hello, " + name);\n}\n\ngreet("Alex");',hint:"The method and parameter can have different names. What matters is that you define a method, give it a String parameter, and call it."},
-classes:{goal:"Create a class with a name field and create an object from it.",example:'class Pet {\n    String name;\n}\n\nPet myPet = new Pet();\nmyPet.name = "Buddy";',hint:"Your class and object can have different names. The important idea is class blueprint → new object."},
-loops:{goal:"Use a loop to repeat a print action.",example:'for (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}',hint:"The counter, limit, and printed value can be different. The code needs to use a loop to repeat the work."},
-minecraft:{goal:"Write Java that shows how a mod could react to a Minecraft situation.",example:'if (player.isSneaking()) {\n    System.out.println("Player is sneaking!");\n}',hint:"This is a concept exercise, not a real Fabric build yet. Use Java structure to show a Minecraft-style condition."},
-challenge:{goal:"Make a small Java program that stores a player name and diamond count, then makes a decision.",example:'String playerName = "Alex";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + " has enough diamonds!");\n} else {\n    System.out.println(playerName + " needs more diamonds.");\n}',hint:"Your player name, variable names, number, and messages can all be different. The structure and meaning are what matter."}
+variables:{goal:"Create a String variable for a player's name, then print that variable.",requirements:"Use a String variable to store a player's name. Then print the variable.",hint:"Choose your own valid variable name and your own player name. Do not copy a solution."},
+strings:{goal:"Create text and number variables, then print them.",requirements:"Use one String variable and one int variable. Print both values.",hint:"Choose your own variable names and values. The important part is using the correct Java types."},
+conditions:{goal:"Use an if/else decision based on a number.",requirements:"Create a number variable, compare it in an if statement, and include an else path.",hint:"Choose your own number, comparison, and messages. Your code needs both if and else."},
+methods:{goal:"Create a method that takes a name and prints a greeting, then call it.",requirements:"Define a method with a String parameter. Make it print a greeting, then call the method.",hint:"Choose your own method name, parameter name, person name, and greeting. The method must be defined and called."},
+classes:{goal:"Create a class with a name field and create an object from it.",requirements:"Define a class with a name field, then create an object from that class.",hint:"Choose your own class, object, and name. The important idea is class blueprint → new object."},
+loops:{goal:"Use a loop to repeat a print action.",requirements:"Use a loop to repeat a print action several times.",hint:"Choose your own loop type, counter, limit, and message. The code must actually repeat the work."},
+minecraft:{goal:"Write Java that shows how a mod could react to a Minecraft situation.",requirements:"Write a Java condition that represents a mod reacting to something happening in Minecraft.",hint:"Choose your own Minecraft situation and response. This is a concept exercise, not a real Fabric build yet."},
+challenge:{goal:"Make a small Java program that stores a player name and diamond count, then makes a decision.",requirements:"Store a player name and diamond count, then use an if/else decision and print a message.",hint:"Choose your own names, diamond count, condition, and messages. Build the solution yourself."}
 };
 
 const sections=[
@@ -107,7 +107,7 @@ return <div className="javaLesson">
 <div className="teacherHeader"><div className="teacherAvatar"><Bot size={18}/></div><div><b>AI Teacher</b><small>Lesson 1 · Java Foundations</small></div><Sparkles size={15}/></div>
 <div className="teacherTyping"><span className="teacherLabel">TEACHING</span><h2>{current.title}</h2><div className="typingText"><span>{teacherText.slice(0,teacherChars)}</span><span className="typingCursor">▌</span></div>
 <div className="teacherTask"><b>What to do</b><span>{challenge?challenge.goal:current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":"Read the explanation, then change the example in the workspace and see what happens."}</span></div>
-{challenge&&<div className="teacherExample"><div><b>WHAT I WANT YOU TO MAKE</b><small>Different names, values, and messages are okay.</small></div><pre>{challenge.example}</pre></div>}
+{challenge&&<div className="teacherExample"><div><b>WHAT I WANT YOU TO MAKE</b><small>No solution is shown here. Build it yourself.</small></div><pre>{challenge.requirements}</pre></div>}
 <div className="teacherChat">
 <div className="chatTitle"><span>CHAT WITH YOUR TEACHER</span></div>
 <div className="chatMessages">{chatMessages.map((m,i)=><div className={m.from==="ai"?"chatAI":"chatUser"} key={i}><b>{m.from==="ai"?"AI Teacher":"You"}</b><span>{m.text}</span></div>)}</div>
@@ -122,7 +122,7 @@ return <div className="javaLesson">
 <div className="studioEditor">
 <div className="studioTitle"><span>CODE</span><b>Workspace</b><small>Write your solution here.</small></div>
 <div className="editorActions"><button onClick={()=>setWorkspaceCode("")}><RotateCcw size={13}/> Clear</button><button onClick={()=>navigator.clipboard?.writeText(workspaceCode)}><CheckCircle2 size={13}/> Copy</button><button className="runButton" onClick={checkCode}><ChevronRight size={13}/> Run</button></div>
-<textarea className="studioCode" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Write YOUR version of the example here.\n// Different names and values are allowed!\n"+(challenge?.example||"") } spellCheck="false"/>
+<textarea className="studioCode" value={workspaceCode} onChange={e=>setWorkspaceCode(e.target.value)} placeholder={"// Write YOUR solution here.\n// Do not copy a solution — build it from the requirements."} spellCheck="false"/>
 <div className="studioStatus"><span>Java workspace</span><span>{workspaceCode.split("\n").length} lines</span></div>
 </div>
 
