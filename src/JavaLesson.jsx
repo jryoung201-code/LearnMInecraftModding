@@ -20,6 +20,20 @@ export default function JavaLesson({done,setDone,ai,setAi}){
 const[section,setSection]=useState("welcome");
 const current=sections.find(x=>x.id===section)||sections[0];
 const index=sections.findIndex(x=>x.id===section);
+const teacherText={
+welcome:"Java is the language we'll use to tell Minecraft what your mod should do. You don't need to memorize everything. We'll learn one idea at a time.",
+variables:"A variable is a named place where your program stores information. In a Minecraft mod, that could be a player name, an item count, a setting, or almost any value your code needs.",
+strings:"Programs work with text and numbers constantly. You'll use Strings for words, ints for whole numbers, doubles for decimals, and operators like + to combine values.",
+conditions:"An if statement lets your mod make decisions. Your code can check something about the game and then choose what should happen next.",
+methods:"A method is a reusable action. Instead of writing the same instructions over and over, you give them a name and call that method whenever you need the action.",
+classes:"A class is a blueprint for related code, while an object is a real thing created from that blueprint. Minecraft uses objects everywhere.",
+loops:"A loop repeats instructions. Loops are useful, but in Minecraft you should always think about how much work you're asking the game to do.",
+minecraft:"Now we're connecting Java to Minecraft. Variables hold information, methods perform actions, classes organize code, if statements make decisions, and loops repeat work.",
+challenge:"Now it's your turn. Write a small Java program that stores a player's name and diamond count, then decides which message to print.",
+checkpoint:"This is your checkpoint. Answer the questions and show that you understand the Java foundations before moving on."
+}[current.id]||"Let's learn this idea together, then you'll try it yourself in the workspace.";
+const[teacherChars,setTeacherChars]=useState(0);
+useEffect(()=>{setTeacherChars(0);let i=0;const timer=setInterval(()=>{i+=2;setTeacherChars(Math.min(i,teacherText.length));if(i>=teacherText.length)clearInterval(timer)},22);return()=>clearInterval(timer)},[section,teacherText]);
 const quiz=[
 {q:"Which type stores text?",a:"String",o:["int","String","boolean","double"]},
 {q:"What does int store?",a:"Whole numbers",o:["Text","true/false","Whole numbers","Decimal numbers"]},
@@ -48,7 +62,7 @@ return <div className="javaLesson">
 <div className="backLessons">← Back to Lessons</div>
 <div className="teacherPanel">
 <div className="teacherHeader"><div className="teacherAvatar"><Bot size={18}/></div><div><b>AI Teacher</b><small>Lesson 1 · Java Foundations</small></div><Sparkles size={15}/></div>
-<div className="teacherTyping"><span className="teacherLabel">TEACHING</span><h2>{current.title}</h2><div className="typingText"><span className="typingCursor">▌</span><span>{({welcome:"Java is the language we'll use to tell Minecraft what your mod should do. You don't need to memorize everything. We'll learn one idea at a time.",variables:"A variable is a named place where your program stores information. In a Minecraft mod, that could be a player name, an item count, a setting, or almost any value your code needs.",strings:"Programs work with text and numbers constantly. You'll use Strings for words, ints for whole numbers, doubles for decimals, and operators like + to combine values.",conditions:"An if statement lets your mod make decisions. Your code can check something about the game and then choose what should happen next.",methods:"A method is a reusable action. Instead of writing the same instructions over and over, you give them a name and call that method whenever you need the action.",classes:"A class is a blueprint for related code, while an object is a real thing created from that blueprint. Minecraft uses objects everywhere.",loops:"A loop repeats instructions. Loops are useful, but in Minecraft you should always think about how much work you're asking the game to do.",minecraft:"Now we're connecting Java to Minecraft. Variables hold information, methods perform actions, classes organize code, if statements make decisions, and loops repeat work.",challenge:"Now it's your turn. Write a small Java program that stores a player's name and diamond count, then decides which message to print.",checkpoint:"This is your checkpoint. Answer the questions and show that you understand the Java foundations before moving on."}[current.id]||"Let's learn this idea together, then you'll try it yourself in the workspace.")}</span></div>
+<div className="teacherTyping"><span className="teacherLabel">TEACHING</span><h2>{current.title}</h2><div className="typingText"><span>{teacherText.slice(0,teacherChars)}</span><span className="typingCursor">▌</span></div>
 <div className="teacherTask"><b>What to do</b><span>{current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":current.id==="challenge"?"Write the challenge in the code workspace, then run it.":"Read the explanation, then change the example in the workspace and see what happens."}</span></div>
 </div>
 <div className="teacherProgress"><span>Part {index+1} of {sections.length}</span><div><i style={{width:((index+1)/sections.length*100)+"%"}}/></div></div>
