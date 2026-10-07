@@ -143,3 +143,20 @@
 .teacherProgress i{display:block;height:100%;background:var(--cyan);border-radius:9px}
 .teacherNav{display:flex;justify-content:space-between;gap:6px;padding:9px;border-top:1px solid var(--line)}
 .teacherNav .primary,.teacherNav .secondary{padding:7px 9px;font-size:9px}
+
+.teacherExample{margin-top:14px;border:1px solid #203750;border-radius:9px;background:#081421;overflow:hidden}
+.teacherExample>div{padding:8px 10px;border-bottom:1px solid #1b3048;display:grid;gap:2px}
+.teacherExample b{font-size:7px;letter-spacing:.12em;color:var(--cyan)}
+.teacherExample small{font-size:7px;color:#657b96}
+.teacherExample pre{margin:0;padding:10px;color:#bfe8ff;font:8px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow:auto}
+.teacherChat{margin-top:14px;border:1px solid #203750;border-radius:9px;background:#07111d;display:flex;flex-direction:column;min-height:180px}
+.chatTitle{padding:8px 10px;border-bottom:1px solid #1b3048;color:#68819d;font-size:7px;letter-spacing:.12em;font-weight:800}
+.chatMessages{padding:8px;display:grid;gap:7px;max-height:180px;overflow:auto}
+.chatAI,.chatUser{display:grid;gap:3px;padding:7px 8px;border-radius:7px;font-size:8px;line-height:1.5}
+.chatAI{background:#0d1b2b;color:#a9bdd3}
+.chatUser{background:#10283a;color:#c7e9f8}
+.chatAI b,.chatUser b{font-size:7px;color:var(--cyan)}
+.chatInput{display:flex;border-top:1px solid #1b3048}
+.chatInput input{min-width:0;flex:1;border:0;outline:0;background:#08121e;color:#bcd0e5;padding:8px;font-size:8px}
+.chatInput input::placeholder{color:#526983}
+.chatInput button{border:0;border-left:1px solid #1b3048;background:#0c1b2b;color:var(--cyan);padding:0 9px;cursor:pointer}
