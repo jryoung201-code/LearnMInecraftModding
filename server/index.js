@@ -271,12 +271,44 @@ const server=http.createServer(async(req,res)=>{
   let body="";
   req.on("data",chunk=>{body+=chunk;if(body.length>20000) req.destroy();});
   req.on("end",async()=>{
+    let reservedInput=0;
+    let clientId="unknown";
     try{
       const input=JSON.parse(body||"{}");
       if(!input.message?.trim()) return send(res,400,{error:"Message is required."});
+
+      clientId=getClientId(req);
+      const inputWords=wordCount(input.message)+wordCount(input.code);
+      const reservation=await reserveInput(clientId,inputWords);
+
+      if(!reservation.ok){
+        return send(res,429,quotaError(reservation.entry));
+      }
+
+      reservedInput=inputWords;
       const answer=await askTinyFish(input);
-      send(res,200,{answer});
+      const usage=await getUsage(clientId);
+      const outputRemaining=Math.max(0,FREE_PLAN_OUTPUT_LIMIT-usage.output);
+      const limitedAnswer=limitWords(answer,outputRemaining);
+      const outputWords=wordCount(limitedAnswer);
+
+      await recordOutput(clientId,outputWords);
+
+      const updated=await getUsage(clientId);
+      send(res,200,{
+        answer:limitedAnswer,
+        plan:"Free",
+        inputUsed:updated.input,
+        outputUsed:updated.output,
+        inputRemaining:Math.max(0,FREE_PLAN_INPUT_LIMIT-updated.input),
+        outputRemaining:Math.max(0,FREE_PLAN_OUTPUT_LIMIT-updated.output),
+        resetAt:new Date(new Date(updated.startedAt).getTime()+FREE_PLAN_WINDOW_MS).toISOString(),
+        windowHours:FREE_PLAN_WINDOW_HOURS
+      });
     }catch(error){
+      if(reservedInput>0){
+        try{await refundInput(clientId,reservedInput);}catch(refundError){console.error(refundError);}
+      }
       console.error(error);
       send(res,500,{error:"The AI Teacher is temporarily unavailable."});
     }
