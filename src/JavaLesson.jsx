@@ -1,4 +1,6 @@
 import React,{useEffect,useState}from"react";
+import ReactMarkdown from"react-markdown";
+import remarkGfm from"remark-gfm";
 import{Bot,CheckCircle2,ChevronRight,Lightbulb,RotateCcw,Send,Sparkles,Trophy,X}from"lucide-react";
 
 const challengeInfo={
@@ -137,7 +139,7 @@ return <div className="javaLesson">
 <div className="teacherHeader"><div className="teacherAvatar"><Bot size={18}/></div><div><b>AI Teacher</b><small>Lesson 1 · Java Foundations</small></div><Sparkles size={15}/></div>
 <div className="teacherTyping"><span className="teacherLabel">TEACHING</span><h2>{current.title}</h2><div className="typingText"><span>{teacherText.slice(0,teacherChars)}</span><span className="typingCursor">▌</span></div>
 <div className="lessonTeacherContent">
-<div className="lessonNarration">{chatMessages.filter(m=>m.from==="ai").map((m,i)=><p key={i}>{m.text}</p>)}</div>
+<div className="lessonNarration">{chatMessages.filter(m=>m.from==="ai").map((m,i)=><div className="teacherMessage" key={i}><ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown></div>)}</div>
 <div className="teacherPractice">{challenge?challenge.requirements:current.id==="checkpoint"?"Complete the checkpoint with at least 80%.":"Try the idea in the workspace."}</div>
 <div className="teacherAsk"><input value={chatInput} placeholder="Talk to your teacher..." onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendTeacher()}/><button onClick={sendTeacher}><Send size={13}/></button></div>
 </div>
