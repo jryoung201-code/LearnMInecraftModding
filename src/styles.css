@@ -203,3 +203,6 @@
 .userTeacherMessage{padding:9px 10px;border:1px solid #21415b;border-radius:8px;background:#10283a;color:#d5e9f7;margin:4px 0}
 .aiTeacherMessage{padding:9px 10px;border:1px solid #203750;border-radius:8px;background:#0c1827;margin:4px 0}
 .userTeacherMessage .chatSpeaker{color:#8fdcff}
+
+
+.scenarioBox{margin-top:12px;padding:10px;border:1px solid #203750;border-radius:8px;background:#081521;max-height:220px;overflow:auto}.scenarioTitle{display:flex;align-items:center;gap:6px;font-size:7px;font-weight:800;letter-spacing:.1em;color:var(--cyan);margin-bottom:8px}.scenarioCard{padding:8px 9px;margin:6px 0;border:1px solid #1b3044;border-radius:7px;background:#0c1b2a}.scenarioCard b{display:block;color:#fff;font-size:9px;margin-bottom:3px}.scenarioCard p{margin:0 0 5px;color:#b8c9db;font-size:8px;line-height:1.5}.scenarioCard small{display:block;color:#7f9ab2;font-size:7px;line-height:1.5}.scenarioCard small strong{color:#8fdcff}
