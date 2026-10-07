@@ -167,3 +167,12 @@
 .autocompleteMenu button{display:flex;align-items:center;justify-content:space-between;gap:14px;border:0;border-radius:5px;background:transparent;color:#bcd0e5;padding:6px 8px;text-align:left;font:9px ui-monospace,SFMono-Regular,Consolas,monospace;cursor:pointer}
 .autocompleteMenu button:hover,.autocompleteMenu button.selected{background:#123047;color:#fff}
 .autocompleteMenu small{font:7px ui-sans-serif;color:#58718b}
+
+.lessonTeacherContent{margin-top:18px;display:flex;flex-direction:column;gap:12px}
+.lessonNarration{font-size:10px;line-height:1.8;color:#b8c9db}
+.lessonNarration p{margin:0 0 10px}
+.teacherPractice{padding:11px 12px;border:1px solid #203750;border-radius:9px;background:#0c1827;color:#c5d5e5;font-size:9px;line-height:1.55}
+.teacherAsk{display:flex;border:1px solid #203750;border-radius:8px;overflow:hidden;background:#08121e}
+.teacherAsk input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:#c7d8e8;padding:9px;font-size:9px}
+.teacherAsk input::placeholder{color:#526983}
+.teacherAsk button{border:0;border-left:1px solid #203750;background:#0c1b2b;color:var(--cyan);padding:0 10px;cursor:pointer}
