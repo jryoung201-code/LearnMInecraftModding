@@ -11,7 +11,7 @@ const sections=[
 {id:"loops",title:"6. Loops: repeating work",body:<><p>A loop repeats code. This becomes useful when you need to process several things.</p><Code text={"for (int i = 0; i < 5; i++) {\n    System.out.println(\"Count: \" + i);\n}"}/><p>This prints five lines. The counter starts at 0 and increases until it reaches 5.</p><div className="warning"><b>Important for Minecraft:</b><span>Do not put huge loops into game code without understanding how much work they do. Performance matters.</span></div></>},
 {id:"minecraft",title:"7. How this connects to Minecraft",body:<><p>Now connect the Java ideas to modding:</p><div className="mapping"><div><b>Java variable</b><span>Stores a setting, name, number, or object.</span></div><div><b>Java method</b><span>Performs one action.</span></div><div><b>Java class</b><span>Organizes related code and represents objects.</span></div><div><b>if statement</b><span>Lets your mod react differently to different situations.</span></div><div><b>loop</b><span>Repeats work when you actually need repetition.</span></div></div></>},
 {id:"challenge",title:"8. Your first mini challenge",body:<><p>Write a tiny Java program that stores a player's name and number of diamonds, then prints a message.</p><Code text={"String playerName = \"YOUR_NAME\";\nint diamonds = 15;\n\nif (diamonds >= 10) {\n    System.out.println(playerName + \" has enough diamonds!\");\n} else {\n    System.out.println(playerName + \" needs more diamonds.\");\n}"}/><p><b>Your job:</b> Change the name and number. Then predict which message will print before running it.</p><div className="challengeSteps"><span>1. Change the name.</span><span>2. Change the diamond count.</span><span>3. Predict the output.</span><span>4. Run it and compare.</span></div></>},
-{id:"checkpoint",title:"9. Lesson checkpoint",body:<><p>Finish the checkpoint quiz to unlock Lesson 1. You need <b>80% or higher</b> to pass.</p><div className="checklist"><label>☐ I know what a variable is.</label><label>☐ I can recognize String, int, double, and boolean.</label><label>☐ I understand what an if/else statement does.</label><label>☐ I understand what a method is.</label><label>☐ I understand class vs object.</label><label>☐ I know what a loop does.</label></div><Quiz quiz={quiz} answers={quizAnswers} setAnswers={setQuizAnswers} submitted={quizSubmitted} setSubmitted={setQuizSubmitted} onPass={()=>setDone(d=>d.includes("java")?d:[...d,"java"])} /></>}
+{id:"checkpoint",title:"9. Lesson checkpoint",body:<><p>Finish the checkpoint quiz to unlock Lesson 1. You need <b>80% or higher</b> to pass.</p><div className="checklist"><label>☐ I know what a variable is.</label><label>☐ I can recognize String, int, double, and boolean.</label><label>☐ I understand what an if/else statement does.</label><label>☐ I understand what a method is.</label><label>☐ I understand class vs object.</label><label>☐ I know what a loop does.</label></div></>}
 ];
 
 function Code({text}){return <pre className="code"><code>{text}</code><button onClick={()=>navigator.clipboard?.writeText(text)}>Copy</button></pre>}
@@ -20,9 +20,6 @@ export default function JavaLesson({done,setDone,ai,setAi}){
 const[section,setSection]=useState("welcome");
 const current=sections.find(x=>x.id===section)||sections[0];
 const index=sections.findIndex(x=>x.id===section);
-const[reset,setReset]=useState(false);
-const[quizAnswers,setQuizAnswers]=useState({});
-const[quizSubmitted,setQuizSubmitted]=useState(false);
 const quiz=[
 {q:"Which type stores text?",a:"String",o:["int","String","boolean","double"]},
 {q:"What does int store?",a:"Whole numbers",o:["Text","true/false","Whole numbers","Decimal numbers"]},
@@ -35,6 +32,10 @@ const quiz=[
 {q:"What does new Pet(\"Buddy\") create?",a:"An object",o:["A class","An object","A boolean","A method"]},
 {q:"What should you do when an error appears?",a:"Read the first error and check its line",o:["Delete the whole project","Ignore it","Read the first error and check its line","Restart Minecraft only"]}
 ];
+const[reset,setReset]=useState(false);
+const[quizAnswers,setQuizAnswers]=useState({});
+const[quizSubmitted,setQuizSubmitted]=useState(false);
+
 useEffect(()=>setSection("welcome"),[]);
 return <div className="javaLesson">
 <div className="lessonTop"><div><div className="meta"><span>BEGINNER</span><span>LESSON 1</span><span>45–60 MIN</span></div><h1>Java Foundations</h1><p className="lead">Your first step into Minecraft modding. We will learn Java one small idea at a time, then connect it to Minecraft.</p></div><button className="resetBtn" onClick={()=>setReset(!reset)}><RotateCcw size={14}/> Reset</button></div>
@@ -42,7 +43,7 @@ return <div className="javaLesson">
 <div className="beginnerLayout"><div>
 <div className="lessonNav">{sections.map((x,i)=><button className={section===x.id?"lessonPart active":"lessonPart"} key={x.id} onClick={()=>setSection(x.id)}><span>{String(i+1).padStart(2,"0")}</span>{x.title}</button>)}</div>
 {reset&&<div className="resetBox">This only resets the open section.<button onClick={()=>{setSection("welcome");setReset(false)}}>Start Lesson 1 from the beginning</button></div>}
-<div className="sectionContent"><span className="sectionEyebrow">PART {index+1}</span><h2>{current.title}</h2>{current.body}</div>
+<div className="sectionContent"><span className="sectionEyebrow">PART {index+1}</span><h2>{current.title}</h2>{current.body}{index===sections.length-1&&<Quiz quiz={quiz} answers={quizAnswers} setAnswers={setQuizAnswers} submitted={quizSubmitted} setSubmitted={setQuizSubmitted} onPass={()=>setDone(d=>d.includes("java")?d:[...d,"java"])} />}</div>
 <div className="lessonBottom"><button className="secondary" disabled={index===0} onClick={()=>setSection(sections[Math.max(0,index-1)].id)}>← Previous</button>{index<sections.length-1?<button className="primary" onClick={()=>setSection(sections[index+1].id)}>Next <ChevronRight size={16}/></button>:<span className="quizLock">Pass the 80% checkpoint to complete</span>}</div>
 {index===sections.length-1&&done.includes("java")&&<div className="completeBanner"><Trophy size={20}/><div><b>Lesson 1 complete!</b><span>Next up: setting up your Fabric mod workspace.</span></div></div>}
 </div>
@@ -50,6 +51,12 @@ return <div className="javaLesson">
 </div>
 {ai&&<AITutor section={current.title} onClose={()=>setAi(false)}/>}
 </div>
+}
+
+function Quiz({quiz,answers,setAnswers,submitted,setSubmitted,onPass}){
+const score=quiz.reduce((n,x,i)=>n+(answers[i]===x.a?1:0),0); const percent=Math.round(score/quiz.length*100);
+const submit=()=>{setSubmitted(true);if(percent>=80)onPass()};
+return <div className="lessonQuiz"><div className="quizHeader"><div><b>80% checkpoint</b><span>10 questions · 8 correct needed to pass</span></div>{submitted&&<strong className={percent>=80?"passScore":"failScore"}>{percent}%</strong>}</div>{quiz.map((x,i)=><div className="quizQuestion" key={x.q}><b>{i+1}. {x.q}</b><div className="quizOptions">{x.o.map(o=><label key={o}><input type="radio" name={"q"+i} checked={answers[i]===o} onChange={()=>{setAnswers(a=>({...a,[i]:o}));setSubmitted(false)}}/>{o}</label>)}</div></div>)}<button className="primary quizSubmit" onClick={submit} disabled={Object.keys(answers).length<quiz.length}>{submitted?(percent>=80?"Passed — Lesson 1 complete!":"Try Again — you need 80%"):"Submit checkpoint"}</button>{submitted&&percent<80&&<p className="quizRetry">You scored {percent}%. Review the lesson or ask the AI Tutor, then try again.</p>}{submitted&&percent>=80&&<p className="quizPass">You passed with {percent}%. Lesson 1 is now completed.</p>}</div>
 }
 
 function AITutor({section,onClose}){
