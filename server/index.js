@@ -30,6 +30,16 @@ const pool = process.env.DATABASE_URL
 
 const memoryUsage = new Map();
 
+function send(res,status,payload){
+  res.writeHead(status,{
+    "Content-Type":"application/json; charset=utf-8",
+    "Access-Control-Allow-Origin":ALLOWED_ORIGIN,
+    "Access-Control-Allow-Headers":"Content-Type",
+    "Access-Control-Allow-Methods":"POST,OPTIONS"
+  });
+  res.end(JSON.stringify(payload));
+}
+
 function wordCount(value){
   return String(value || "").trim().split(/\s+/).filter(Boolean).length;
 }
