@@ -117,17 +117,12 @@ challenge:/\bString\s+\w+\s*=/.test(code)&&/\bint\s+\w+\s*=/.test(code)&&/\bif\s
 const ok=challenge?checks[current.id]!==false:code.includes("System.out");
 setOutput(ok?["✓ Your code matches the goal!","The exact variable names, values, and messages can be different.","Keep coding like this — understand the idea, don't just copy the example."]:["✗ Not quite yet.","Your code does not match the goal for this section yet.","You can use different names and values, but the required Java concept still needs to be present."]);
 };
-const typeTeacherReply=(message)=>{
- const index=chatMessages.length+1;
- setChatTyping({index,text:message,pos:0});
- setChatMessages(x=>[...x,{from:"ai",text:""}]);
-};
 const sendTeacher=async()=>{
 if(!chatInput.trim()||chatTyping)return;
 const user=chatInput.trim();
-setChatMessages(x=>[...x,{from:"user",text:user}]);
+setChatMessages(x=>[...x,{from:"user",text:user},{from:"ai",text:"Thinking..."}]);
 setChatInput("");
-setChatTyping({index:chatMessages.length+1,text:"Thinking...",pos:0});
+setChatTyping({text:"Thinking...",pos:0});
 try{
  const response=await fetch("https://learn-minecraft-modding-ai.onrender.com/api/teacher",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:user,section:current.title,code:workspaceCode})});
  const data=await response.json();
@@ -138,12 +133,22 @@ try{
    if(typeof parsed==="string")answer=parsed;
    else if(parsed&&typeof parsed.result==="string")answer=parsed.result;
  }catch{}
- setChatMessages(x=>[...x,{from:"ai",text:""}]);
- setChatTyping({index:chatMessages.length+2,text:answer,pos:0});
+ setChatMessages(x=>{
+   const next=[...x];
+   const i=next.length-1;
+   if(i>=0&&next[i].from==="ai")next[i]={from:"ai",text:""};
+   return next;
+ });
+ setChatTyping({text:answer,pos:0});
 }catch{
  const answer="I couldn't reach the AI Teacher right now. You can keep working on the lesson and try again in a moment.";
- setChatMessages(x=>[...x,{from:"ai",text:""}]);
- setChatTyping({index:chatMessages.length+2,text:answer,pos:0});
+ setChatMessages(x=>{
+   const next=[...x];
+   const i=next.length-1;
+   if(i>=0&&next[i].from==="ai")next[i]={from:"ai",text:""};
+   return next;
+ });
+ setChatTyping({text:answer,pos:0});
 }
 };
 
