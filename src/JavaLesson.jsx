@@ -68,6 +68,8 @@ return <div className="javaLesson">
 
 {index===sections.length-1&&done.includes("java")&&<div className="completeBanner"><Trophy size={20}/><div><b>Lesson 1 complete!</b><span>Next up: setting up your Fabric mod workspace.</span></div></div>}
 </div>
+}
+
 function Quiz({quiz,answers,setAnswers,submitted,setSubmitted,onPass}){
 const score=quiz.reduce((n,x,i)=>n+(answers[i]===x.a?1:0),0); const percent=Math.round(score/quiz.length*100);
 const submit=()=>{setSubmitted(true);if(percent>=80)onPass()};
