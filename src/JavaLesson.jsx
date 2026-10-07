@@ -171,8 +171,14 @@ if(!code.trim()){setOutput(["Write some code first, then run it."]);return}
 const declaredNames=new Set();
 for(const match of code.matchAll(/\b(?:String|int|double|boolean|float|long)\s+(\w+)\s*=\s*/g))declaredNames.add(match[1]);
 
-const printlnRefs=[...code.matchAll(/System\.out\.println\s*\(\s*([A-Za-z_]\w*)\s*\)/g)].map(m=>m[1]);
-const missingRefs=printlnRefs.filter(name=>!declaredNames.has(name));
+const printlnExpressions=[...code.matchAll(/System\.out\.println\s*\(([^)]*)\)/g)].map(m=>m[1]);
+const printlnRefs=printlnExpressions.flatMap(expression=>{
+ const withoutStrings=expression.replace(/"([^"\\]|\\.)*"/g,"");
+ return [...withoutStrings.matchAll(/\b[A-Za-z_]\w*\b/g)]
+   .map(m=>m[0])
+   .filter(name=>!["true","false","null"].includes(name));
+});
+const missingRefs=[...new Set(printlnRefs.filter(name=>!declaredNames.has(name)))];
 
 const missingSemicolonLines=code.split("\n").filter(line=>{
  const trimmed=line.trim();
