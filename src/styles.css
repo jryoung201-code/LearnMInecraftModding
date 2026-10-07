@@ -198,3 +198,8 @@
 .saveIndicator{color:#55d6a7;font-style:normal;font-size:7px;letter-spacing:.04em}
 .chatTypingCursor{color:var(--cyan);animation:teacherBlink .7s steps(1) infinite;margin-left:2px}
 .teacherAsk button:disabled{opacity:.45;cursor:wait}
+
+.chatSpeaker{font-size:7px;font-weight:800;letter-spacing:.08em;margin-bottom:4px;color:var(--cyan)}
+.userTeacherMessage{padding:9px 10px;border:1px solid #21415b;border-radius:8px;background:#10283a;color:#d5e9f7;margin:4px 0}
+.aiTeacherMessage{padding:9px 10px;border:1px solid #203750;border-radius:8px;background:#0c1827;margin:4px 0}
+.userTeacherMessage .chatSpeaker{color:#8fdcff}
