@@ -194,3 +194,7 @@
 .teacherMessage a{color:var(--cyan)}
 .teacherMessage blockquote{margin:10px 0;padding:8px 10px;border-left:2px solid var(--cyan);background:#0c1827;color:#9fb2c7}
 .teacherMessage hr{border:0;border-top:1px solid #203750;margin:12px 0}
+
+.saveIndicator{color:#55d6a7;font-style:normal;font-size:7px;letter-spacing:.04em}
+.chatTypingCursor{color:var(--cyan);animation:teacherBlink .7s steps(1) infinite;margin-left:2px}
+.teacherAsk button:disabled{opacity:.45;cursor:wait}
